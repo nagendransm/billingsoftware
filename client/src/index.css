@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Noto Sans Tamil', 'Latha', Roboto, Helvetica, Arial, sans-serif;
+    color: #1f2937;
+    background-color: #f3f4f6;
+  }
+}
+
+/* Tamil font optimization */
+.font-tamil {
+  font-family: 'Noto Sans Tamil', 'Mukta Malar', 'Latha', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Print Styles for POS Thermal (80mm / 58mm) & A4 Invoices */
+@media print {
+  /* Hide all app chrome */
+  body {
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .no-print, nav, header, aside, .sidebar, button, input, .modal-backdrop {
+    display: none !important;
+  }
+
+  /* Thermal Receipt Container (80mm standard width: ~300px) */
+  .thermal-receipt-container {
+    display: block !important;
+    width: 78mm !important;
+    max-width: 78mm !important;
+    margin: 0 auto !important;
+    padding: 4mm 2mm !important;
+    color: #000000 !important;
+    font-family: 'Segoe UI', 'Noto Sans Tamil', monospace !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* 58mm thermal width */
+  .thermal-receipt-container.width-58mm {
+    width: 54mm !important;
+    max-width: 54mm !important;
+    font-size: 9.5px !important;
+    padding: 2mm 1mm !important;
+  }
+
+  /* A4 Invoice Container */
+  .a4-invoice-container {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 10mm !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    font-size: 12px !important;
+  }
+
+  /* Ensure black text and crisp borders in print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color: #000000 !important;
+  }
+  
+  .border-dashed {
+    border-style: dashed !important;
+    border-color: #000000 !important;
+  }
+}

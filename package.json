@@ -1,0 +1,30 @@
+{
+  "name": "tamilnadu-grocery-gst-billing",
+  "version": "1.0.0",
+  "description": "GST Compliant Billing Software for Grocery Stores in Tamil Nadu (Bilingual Tamil & English)",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "build:client": "npm.cmd --prefix client run build",
+    "test": "node test_system.js"
+  },
+  "keywords": [
+    "grocery",
+    "gst",
+    "billing",
+    "tamilnadu",
+    "tamil",
+    "pos",
+    "gstr1"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "electron": "^44.5.1"
+  }
+}

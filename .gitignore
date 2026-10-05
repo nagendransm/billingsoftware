@@ -1,0 +1,15 @@
+node_modules/
+client/node_modules/
+data/*.db-wal
+data/*.db-shm
+.DS_Store
+*.log
+
+# Packaged desktop build output (384MB — rebuild with: node build_desktop.js)
+TamilNaduGroceryBilling/
+
+# Compiled frontend (rebuild with: npm run build:client)
+client/dist/
+
+# Node.js binary (87MB — not needed in source control)
+bin/
