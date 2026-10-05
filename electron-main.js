@@ -57,12 +57,23 @@ function createWindow() {
   // Remove standard browser menu
   Menu.setApplicationMenu(null);
 
-  // Load local POS app
-  mainWindow.loadURL('http://localhost:5000');
+  // Load local POS app with automatic retry
+  const loadPOS = () => {
+    mainWindow.loadURL('http://localhost:5000').catch((err) => {
+      console.log('Retrying loadURL in 500ms...', err);
+      setTimeout(loadPOS, 500);
+    });
+  };
+  loadPOS();
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.maximize();
     mainWindow.show();
+  });
+
+  mainWindow.webContents.on('did-fail-load', () => {
+    console.log('Failed to load localhost:5000, retrying in 1s...');
+    setTimeout(loadPOS, 1000);
   });
 
   mainWindow.on('closed', () => {
