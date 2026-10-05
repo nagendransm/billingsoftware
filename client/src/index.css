@@ -31,15 +31,55 @@
 
 /* Print Styles for POS Thermal (80mm / 58mm) & A4 Invoices */
 @media print {
-  /* Hide all app chrome */
-  body {
+  /* Hide all app chrome, full screen backgrounds and navigation */
+  html, body {
     background: #ffffff !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
   }
   
-  .no-print, nav, header, aside, .sidebar, button, input, .modal-backdrop {
+  /* Hide entire page UI except the receipt modal */
+  .no-print, nav, header, aside, .sidebar, button, input, footer, main {
     display: none !important;
+  }
+
+  /* Reset modal overlay so it doesn't show dark background or fixed centering box */
+  .receipt-modal-overlay {
+    position: static !important;
+    inset: auto !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Reset modal dialog box: no borders, no shadow, no fixed height */
+  .receipt-modal-dialog {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Reset scroll area inside modal */
+  .receipt-scroll-area {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    display: block !important;
   }
 
   /* Thermal Receipt Container (80mm standard width: ~300px) */
@@ -50,6 +90,8 @@
     margin: 0 auto !important;
     padding: 4mm 2mm !important;
     color: #000000 !important;
+    background: #ffffff !important;
+    border: none !important;
     font-family: 'Segoe UI', 'Noto Sans Tamil', monospace !important;
     font-size: 11px !important;
     line-height: 1.25 !important;

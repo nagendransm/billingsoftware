@@ -29,8 +29,8 @@ export default function ReceiptModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2">
-      <div className="bg-white rounded border border-slate-400 max-w-2xl w-full max-h-[94vh] flex flex-col overflow-hidden shadow-2xl">
+    <div className="receipt-modal-overlay fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2">
+      <div className="receipt-modal-dialog bg-white rounded border border-slate-400 max-w-2xl w-full max-h-[94vh] flex flex-col overflow-hidden shadow-2xl">
         
         {/* Top Control Bar */}
         <div className="no-print bg-slate-900 text-white px-3 py-2 flex justify-between items-center text-xs">
@@ -63,7 +63,7 @@ export default function ReceiptModal({
         </div>
 
         {/* Printable Area */}
-        <div className="flex-1 overflow-y-auto p-4 bg-slate-100 flex justify-center text-xs">
+        <div className="receipt-scroll-area flex-1 overflow-y-auto p-4 bg-slate-100 flex justify-center text-xs">
           
           {/* ======================================================== */}
           {/* 1. THERMAL POS RECEIPT FORMAT (80mm / 58mm)               */}
