@@ -125,7 +125,24 @@ db.exec(`
     date TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    role TEXT NOT NULL, -- 'admin' or 'user'
+    name TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
+
+// Seed default users if empty
+const userCount = db.prepare('SELECT count(*) as count FROM users').get();
+if (userCount.count === 0) {
+  const insertUser = db.prepare('INSERT INTO users (username, password, role, name) VALUES (?, ?, ?, ?)');
+  insertUser.run('admin', 'admin123', 'admin', 'Administrator');
+  insertUser.run('user', 'user123', 'user', 'Billing Staff');
+}
 
 // Seed default settings if empty
 const settingsCount = db.prepare('SELECT count(*) as count FROM settings').get();

@@ -355,4 +355,14 @@ router.delete('/:id', (req, res) => {
   }
 });
 
+// Completely delete all products (Admin only)
+router.delete('/', (req, res) => {
+  try {
+    db.prepare('DELETE FROM products').run();
+    res.json({ success: true, message: 'All products have been deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

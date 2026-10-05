@@ -126,4 +126,27 @@ router.post('/:id/pay-credit', (req, res) => {
   }
 });
 
+// Delete single customer
+router.delete('/:id', (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    db.prepare('DELETE FROM credit_transactions WHERE customer_id = ?').run(id);
+    db.prepare('DELETE FROM customers WHERE id = ?').run(id);
+    res.json({ success: true, message: 'Customer deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Completely delete all customers & customer credit history (Admin only)
+router.delete('/', (req, res) => {
+  try {
+    db.prepare('DELETE FROM credit_transactions').run();
+    db.prepare('DELETE FROM customers').run();
+    res.json({ success: true, message: 'All customer data and credit history have been completely deleted' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

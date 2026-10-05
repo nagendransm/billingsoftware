@@ -7,7 +7,9 @@ export default function Navbar({
   setLang, 
   t, 
   storeSettings = {},
-  lowStockCount = 0 
+  lowStockCount = 0,
+  currentUser = null,
+  onLogout
 }) {
   const shopName = lang === 'ta' 
     ? (storeSettings.shop_name_ta || storeSettings.shop_name_en || 'மளிகை கடை பில்லிங்') 
@@ -21,6 +23,12 @@ export default function Navbar({
     { id: 'customers', labelTa: 'கடன் கணக்கு (F5)', labelEn: 'Credit (F5)' },
     { id: 'settings', labelTa: 'அமைப்புகள் (F6)', labelEn: 'Settings (F6)' },
   ];
+
+  // Filter tabs according to role (Cashier / User only has access to Billing)
+  const isUserRole = currentUser && currentUser.role === 'user';
+  const visibleNavItems = isUserRole
+    ? navItems.filter(item => item.id === 'pos')
+    : navItems;
 
   return (
     <header className="no-print bg-slate-900 text-white border-b-2 border-slate-700 select-none flex-shrink-0">
@@ -52,7 +60,7 @@ export default function Navbar({
 
         {/* Center: Plain Flat Navigation Tabs */}
         <nav className="hidden md:flex items-center space-x-1 flex-shrink-0">
-          {navItems.map(item => {
+          {visibleNavItems.map(item => {
             const isActive = activeTab === item.id;
             const label = lang === 'ta' ? item.labelTa : item.labelEn;
             return (
@@ -76,8 +84,30 @@ export default function Navbar({
           })}
         </nav>
 
-        {/* Right: Plain Language Toggle & Mobile Select */}
+        {/* Right: User Role Badge, Logout & Plain Language Toggle */}
         <div className="flex items-center space-x-2 flex-shrink-0">
+          {currentUser && (
+            <div className="flex items-center space-x-1.5 bg-slate-800 px-2 py-1 rounded border border-slate-700 text-xs">
+              <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold uppercase ${
+                currentUser.role === 'admin' 
+                  ? 'bg-rose-900 text-rose-200 border border-rose-700' 
+                  : 'bg-blue-900 text-blue-200 border border-blue-700'
+              }`}>
+                {currentUser.role}
+              </span>
+              <span className="font-semibold text-slate-200 hidden sm:inline">{currentUser.name || currentUser.username}</span>
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  title="Logout / வெளியேறு"
+                  className="ml-1 text-slate-400 hover:text-rose-400 font-bold px-1 py-0.5 rounded transition-colors text-[11px]"
+                >
+                  🚪 Logout
+                </button>
+              )}
+            </div>
+          )}
+
           <button
             onClick={() => setLang(lang === 'ta' ? 'en' : 'ta')}
             className="px-2.5 py-1 text-xs font-bold rounded bg-slate-800 border border-slate-600 text-emerald-400 hover:bg-slate-700 font-mono"
@@ -92,7 +122,7 @@ export default function Navbar({
               onChange={(e) => setActiveTab(e.target.value)}
               className="bg-slate-800 text-white text-xs px-2 py-1 rounded border border-slate-600 focus:outline-none"
             >
-              {navItems.map(item => (
+              {visibleNavItems.map(item => (
                 <option key={item.id} value={item.id}>
                   {lang === 'ta' ? item.labelTa : item.labelEn}
                 </option>

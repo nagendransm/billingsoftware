@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import PosScreen from './components/PosScreen';
 import ProductsScreen from './components/ProductsScreen';
@@ -7,6 +7,7 @@ import ReportsScreen from './components/ReportsScreen';
 import CustomersScreen from './components/CustomersScreen';
 import SettingsScreen from './components/SettingsScreen';
 import ReceiptModal from './components/ReceiptModal';
+import LoginModal from './components/LoginModal';
 import { translations } from './translations';
 
 export default function App() {
@@ -18,6 +19,36 @@ export default function App() {
   const [customers, setCustomers] = useState([]);
   const [activeInvoice, setActiveInvoice] = useState(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+
+  // Authentication State (Admin or User)
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pos_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const handleLogin = (user) => {
+    setCurrentUser(user);
+    try {
+      localStorage.setItem('pos_user', JSON.stringify(user));
+    } catch (e) {
+      console.error(e);
+    }
+    setActiveTab('pos');
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    try {
+      localStorage.removeItem('pos_user');
+    } catch (e) {
+      console.error(e);
+    }
+    setActiveTab('pos');
+  };
 
   const t = translations[lang] || translations.ta;
 
@@ -87,25 +118,44 @@ export default function App() {
     document.title = `${titleName} - GST Billing POS (TN-33)`;
   }, [storeSettings, lang]);
 
-  // Tab Hotkeys (F1 to F6)
+  // Tab Hotkeys (F1 to F6) - Bulletproof with capture phase & role check
+  const currentUserRef = useRef(currentUser);
+  currentUserRef.current = currentUser;
+
   useEffect(() => {
     const handleTabKeys = (e) => {
+      const user = currentUserRef.current;
+      const isAdmin = user && user.role === 'admin';
+
       if (e.key === 'F1') {
         e.preventDefault();
+        e.stopPropagation();
         setActiveTab('pos');
+      } else if (e.key === 'F2') {
+        // Only switch to Products if admin and NOT on POS (POS uses F2 for New Bill)
+        // If on POS screen, PosScreen's own listener handles F2 for New Bill!
       } else if (e.key === 'F3') {
-        e.preventDefault();
-        setActiveTab('invoices');
+        if (isAdmin) {
+          e.preventDefault();
+          e.stopPropagation();
+          setActiveTab('invoices');
+        }
       } else if (e.key === 'F5') {
-        e.preventDefault();
-        setActiveTab('customers');
+        if (isAdmin) {
+          e.preventDefault();
+          e.stopPropagation();
+          setActiveTab('customers');
+        }
       } else if (e.key === 'F6') {
-        e.preventDefault();
-        setActiveTab('settings');
+        if (isAdmin) {
+          e.preventDefault();
+          e.stopPropagation();
+          setActiveTab('settings');
+        }
       }
     };
-    window.addEventListener('keydown', handleTabKeys);
-    return () => window.removeEventListener('keydown', handleTabKeys);
+    window.addEventListener('keydown', handleTabKeys, true);
+    return () => window.removeEventListener('keydown', handleTabKeys, true);
   }, []);
 
   // Calculate low stock count
@@ -134,9 +184,16 @@ export default function App() {
     }
   };
 
+  const isAdmin = currentUser && currentUser.role === 'admin';
+
   return (
     <div className="h-screen max-h-screen overflow-hidden bg-slate-100 flex flex-col font-sans text-slate-800">
       
+      {/* Login Modal when not signed in */}
+      {!currentUser && (
+        <LoginModal onLogin={handleLogin} lang={lang} />
+      )}
+
       {/* Top Navbar */}
       <Navbar
         activeTab={activeTab}
@@ -146,6 +203,8 @@ export default function App() {
         t={t}
         storeSettings={storeSettings}
         lowStockCount={lowStockCount}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
 
       {/* Main Tab Screen Content */}
@@ -161,7 +220,7 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'products' && (
+        {isAdmin && activeTab === 'products' && (
           <ProductsScreen
             products={products}
             categories={categories}
@@ -171,7 +230,7 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'invoices' && (
+        {isAdmin && activeTab === 'invoices' && (
           <InvoicesScreen
             lang={lang}
             t={t}
@@ -179,14 +238,14 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'reports' && (
+        {isAdmin && activeTab === 'reports' && (
           <ReportsScreen
             lang={lang}
             t={t}
           />
         )}
 
-        {activeTab === 'customers' && (
+        {isAdmin && activeTab === 'customers' && (
           <CustomersScreen
             customers={customers}
             lang={lang}
@@ -195,12 +254,14 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'settings' && (
+        {isAdmin && activeTab === 'settings' && (
           <SettingsScreen
             storeSettings={storeSettings}
             lang={lang}
             t={t}
             onSave={(newSettings) => setStoreSettings(newSettings)}
+            onRefreshProducts={loadProducts}
+            onRefreshCustomers={loadCustomers}
           />
         )}
       </main>

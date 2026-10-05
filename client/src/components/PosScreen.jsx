@@ -162,15 +162,24 @@ export default function PosScreen({
     loadPastBill(-1);
   };
 
-  // Global Keyboard Shortcuts (F2: New, F4: Search, F8: Save, F9: Print, F10: Hold, Up/Down: Past Bills)
+  // Global Keyboard Shortcuts (F1, F2: New, F4: Search, F8: Save, F9: Print, F10: Hold, Up/Down: Past Bills)
+  // Latest state references so shortcuts NEVER get stale or miss keystrokes
+  const cartRef = useRef(cart);
+  cartRef.current = cart;
+  const viewingPastBillRef = useRef(viewingPastBill);
+  viewingPastBillRef.current = viewingPastBill;
+
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Reliable function key handling across all browser/electron states
       if (e.key === 'F2') {
         e.preventDefault();
+        e.stopPropagation();
         handleReturnToNewBill();
       } else if (e.key === 'F4') {
         e.preventDefault();
-        if (viewingPastBill) {
+        e.stopPropagation();
+        if (viewingPastBillRef.current) {
           handleReturnToNewBill();
         }
         if (searchInputRef.current) {
@@ -179,17 +188,24 @@ export default function PosScreen({
         }
       } else if (e.key === 'F8') {
         e.preventDefault();
-        if (!viewingPastBill) handleSaveBill(false);
+        e.stopPropagation();
+        if (!viewingPastBillRef.current) {
+          handleSaveBill(false);
+        }
       } else if (e.key === 'F9') {
         e.preventDefault();
-        if (viewingPastBill) {
-          if (onInvoiceCreated) onInvoiceCreated(viewingPastBill, true);
+        e.stopPropagation();
+        if (viewingPastBillRef.current) {
+          if (onInvoiceCreated) onInvoiceCreated(viewingPastBillRef.current, true);
         } else {
           handleSaveBill(true);
         }
       } else if (e.key === 'F10') {
         e.preventDefault();
-        if (!viewingPastBill) handleHoldBill();
+        e.stopPropagation();
+        if (!viewingPastBillRef.current) {
+          handleHoldBill();
+        }
       } else if (e.key === 'PageUp') {
         e.preventDefault();
         handlePrevBill();
@@ -197,12 +213,12 @@ export default function PosScreen({
         e.preventDefault();
         handleNextBill();
       } else if (e.key === 'Escape') {
-        if (viewingPastBill) {
+        if (viewingPastBillRef.current) {
           e.preventDefault();
           handleReturnToNewBill();
         }
       } else if (e.key === 'ArrowUp') {
-        if (viewingPastBill) {
+        if (viewingPastBillRef.current) {
           e.preventDefault();
           handlePrevBill();
         } else if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT' && e.target.tagName !== 'TEXTAREA') {
@@ -210,16 +226,16 @@ export default function PosScreen({
           handlePrevBill();
         }
       } else if (e.key === 'ArrowDown') {
-        if (viewingPastBill) {
+        if (viewingPastBillRef.current) {
           e.preventDefault();
           handleNextBill();
         }
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [cart, selectedCustomerId, customerName, customerPhone, customerGstin, paymentMode, cashReceived, additionalDiscount, pastBillIndex, viewingPastBill, pastInvoices, draftBill]);
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [pastBillIndex, pastInvoices, draftBill]);
 
   // Alphabetical sorting helper (Tamil Unicode aware & English)
   const sortProductsAlphabetically = (items, currentLang = 'ta') => {

@@ -4,7 +4,9 @@ export default function SettingsScreen({
   storeSettings = {},
   lang = 'ta',
   t = {},
-  onSave
+  onSave,
+  onRefreshProducts,
+  onRefreshCustomers
 }) {
   const [formData, setFormData] = useState({
     shop_name_en: storeSettings.shop_name_en || '',
@@ -221,11 +223,109 @@ export default function SettingsScreen({
             disabled={saving}
             className="px-6 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded font-bold text-xs"
           >
-            {saving ? 'சேமிக்கப்படுகிறது...' : 'அமைப்புகளைச் சேமிக்க (Save Settings)'}
+            {saving ? 'Saving...' : 'Save Settings / அமைப்புகளைச் சேமிக்க'}
           </button>
         </div>
 
       </form>
+
+      {/* ======================================================== */}
+      {/* ADMIN DATA MANAGEMENT: DELETE PRODUCTS & CUSTOMERS       */}
+      {/* ======================================================== */}
+      <div className="bg-white p-4 rounded border border-rose-300 space-y-3">
+        <div className="border-b border-rose-200 pb-2">
+          <h3 className="font-bold text-sm text-rose-900 flex items-center space-x-1.5">
+            <span>⚠️</span>
+            <span>Admin Data Management (தரவு மேலாண்மை)</span>
+          </h3>
+          <p className="text-[11px] text-slate-600 mt-0.5">
+            Completely erase all products or all customers from the system when resetting store inventory or starting fresh.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          
+          {/* Delete All Products Card */}
+          <div className="p-3 bg-rose-50/60 rounded border border-rose-200 flex flex-col justify-between space-y-2">
+            <div>
+              <h4 className="font-bold text-xs text-rose-950 flex items-center space-x-1">
+                <span>📦</span>
+                <span>Completely Delete All Products</span>
+              </h4>
+              <p className="text-[10px] text-rose-800 mt-1 leading-relaxed">
+                Permanently removes all items and stock counts from the database. (அனைத்துப் பொருட்களையும் நீக்கு)
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                const conf = window.prompt(
+                  'Are you sure you want to PERMANENTLY delete ALL products? Type "DELETE" to confirm:'
+                );
+                if (conf === 'DELETE') {
+                  try {
+                    const res = await fetch('/api/products', { method: 'DELETE' });
+                    const data = await res.json();
+                    if (data.success) {
+                      alert('All products have been deleted successfully!');
+                      if (onRefreshProducts) onRefreshProducts();
+                    } else {
+                      alert(data.error || 'Failed to delete products');
+                    }
+                  } catch (err) {
+                    console.error(err);
+                    alert('Error deleting products');
+                  }
+                }
+              }}
+              className="w-full py-1.5 bg-rose-700 hover:bg-rose-800 text-white rounded font-bold text-xs shadow-xs"
+            >
+              🗑️ Delete All Products
+            </button>
+          </div>
+
+          {/* Delete All Customers Card */}
+          <div className="p-3 bg-rose-50/60 rounded border border-rose-200 flex flex-col justify-between space-y-2">
+            <div>
+              <h4 className="font-bold text-xs text-rose-950 flex items-center space-x-1">
+                <span>👥</span>
+                <span>Completely Delete All Customers</span>
+              </h4>
+              <p className="text-[10px] text-rose-800 mt-1 leading-relaxed">
+                Permanently removes all customer records and credit ledgers from the database. (அனைத்து வாடிக்கையாளர் விபரங்களை நீக்கு)
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                const conf = window.prompt(
+                  'Are you sure you want to PERMANENTLY delete ALL customers & credit history? Type "DELETE" to confirm:'
+                );
+                if (conf === 'DELETE') {
+                  try {
+                    const res = await fetch('/api/customers', { method: 'DELETE' });
+                    const data = await res.json();
+                    if (data.success) {
+                      alert('All customers and credit ledger records deleted successfully!');
+                      if (onRefreshCustomers) onRefreshCustomers();
+                    } else {
+                      alert(data.error || 'Failed to delete customers');
+                    }
+                  } catch (err) {
+                    console.error(err);
+                    alert('Error deleting customers');
+                  }
+                }
+              }}
+              className="w-full py-1.5 bg-rose-700 hover:bg-rose-800 text-white rounded font-bold text-xs shadow-xs"
+            >
+              🗑️ Delete All Customers
+            </button>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   );
 }
