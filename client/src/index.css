@@ -18,7 +18,7 @@
 
 @layer base {
   body {
-    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Noto Sans Tamil', 'Mukta Malar', 'Latha', 'Nirmala UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', 'Nirmala UI', 'Latha', -apple-system, BlinkMacSystemFont, 'Noto Sans Tamil', 'Mukta Malar', Roboto, Helvetica, Arial, sans-serif;
     color: #1f2937;
     background-color: #f3f4f6;
   }
@@ -26,7 +26,7 @@
 
 /* Tamil font optimization - High readability Unicode standard */
 .font-tamil {
-  font-family: 'Noto Sans Tamil', 'Mukta Malar', 'Latha', 'Nirmala UI', 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Nirmala UI', 'Latha', 'Noto Sans Tamil', 'Mukta Malar', 'Segoe UI', system-ui, sans-serif;
 }
 
 /* Custom scrollbars */

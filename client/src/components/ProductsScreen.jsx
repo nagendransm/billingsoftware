@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
+import { cleanTamilText } from '../utils/tamilConverter';
 
 export default function ProductsScreen({
   products = [],
@@ -169,11 +170,11 @@ export default function ProductsScreen({
     const reader = new FileReader();
     reader.onload = (evt) => {
       try {
-        const bstr = evt.target.result;
-        const workbook = XLSX.read(bstr, { type: 'binary' });
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: 'array', codepage: 65001 });
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
-        const rawJson = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+        const rawJson = XLSX.utils.sheet_to_json(worksheet, { defval: '', raw: false });
 
         if (!rawJson || rawJson.length === 0) {
           alert(lang === 'ta' ? 'எக்செல் கோப்பில் விவரங்கள் இல்லை!' : 'Excel sheet is empty!');
@@ -182,40 +183,85 @@ export default function ProductsScreen({
 
         // Map flexible column headers (English & Tamil variations)
         const mapped = rawJson.map((row) => {
-          const name_en = row['Item Name (English)'] || row['name_en'] || row['Item Name'] || row['Name'] || row['English Name'] || '';
-          const name_ta = row['பொருள் பெயர் (தமிழ்)'] || row['name_ta'] || row['Tamil Name'] || row['பொருள் பெயர்'] || name_en;
-          const barcode = row['Barcode'] || row['barcode'] || row['பார்கோடு'] || '';
-          const selling_price = row['Selling Price'] || row['selling_price'] || row['Price'] || row['விலை'] || row['விற்பனை விலை'] || 0;
-          const cost_price = row['Cost Price'] || row['cost_price'] || row['கொள்முதல் விலை'] || 0;
+          // Detect Tamil name from all common column variations
+          const rawTa = (
+            row['பொருள் பெயர் (தமிழ்)'] ||
+            row['பொருள் பெயர்'] ||
+            row['பொருளின் பெயர்'] ||
+            row['தமிழ் பெயர்'] ||
+            row['பெயர்'] ||
+            row['பொருட்கள்'] ||
+            row['Tamil Name'] ||
+            row['Tamil'] ||
+            row['TAMIL NAME'] ||
+            row['Item Name (Tamil)'] ||
+            row['Product Name (Tamil)'] ||
+            row['name_ta'] ||
+            ''
+          ).toString().trim();
+
+          // Detect English name from all common column variations
+          const rawEn = (
+            row['Item Name (English)'] ||
+            row['Item Name'] ||
+            row['Product Name'] ||
+            row['Name'] ||
+            row['English Name'] ||
+            row['Product'] ||
+            row['Description'] ||
+            row['Particulars'] ||
+            row['name_en'] ||
+            ''
+          ).toString().trim();
+
+          // Clean Tamil text: decodes mojibake, converts TSCII if needed, normalizes Unicode
+          let name_ta = cleanTamilText(rawTa);
+          let name_en = rawEn;
+
+          // If only one name is provided, auto-fill both
+          if (!name_ta && name_en) {
+            name_ta = cleanTamilText(name_en);
+          } else if (name_ta && !name_en) {
+            name_en = name_ta;
+          }
+
+          let barcode = (row['Barcode'] || row['barcode'] || row['பார்கோடு'] || row['Bar Code'] || row['Code'] || '').toString().trim();
+          if (barcode.includes('e+') || barcode.includes('E+')) {
+            const num = Number(barcode);
+            if (!isNaN(num)) barcode = BigInt(Math.round(num)).toString();
+          }
+
+          const selling_price = row['Selling Price'] || row['selling_price'] || row['Price'] || row['Rate'] || row['விலை'] || row['விற்பனை விலை'] || 0;
+          const cost_price = row['Cost Price'] || row['cost_price'] || row['Cost'] || row['கொள்முதல் விலை'] || 0;
           const mrp = row['MRP'] || row['mrp'] || selling_price;
-          const hsn_code = row['HSN Code'] || row['hsn_code'] || row['HSN'] || '1006';
-          const gst_rate = row['GST Rate (%)'] || row['gst_rate'] || row['GST'] || row['GST %'] || 5;
-          const unit = (row['Unit'] || row['unit'] || row['அலகு'] || 'kg').toString().toLowerCase().trim();
-          const stock_quantity = row['Stock Quantity'] || row['stock_quantity'] || row['இருப்பு'] || 100;
-          const min_stock_alert = row['Min Alert'] || row['min_stock_alert'] || 10;
+          const hsn_code = (row['HSN Code'] || row['hsn_code'] || row['HSN'] || '1006').toString().trim();
+          const gst_rate = row['GST Rate (%)'] || row['GST Rate'] || row['gst_rate'] || row['GST'] || row['GST %'] || 5;
+          const unit = (row['Unit'] || row['unit'] || row['UOM'] || row['அலகு'] || 'kg').toString().toLowerCase().trim();
+          const stock_quantity = row['Stock Quantity'] || row['stock_quantity'] || row['Stock'] || row['Qty'] || row['இருப்பு'] || 100;
+          const min_stock_alert = row['Min Alert'] || row['min_stock_alert'] || row['Min Stock'] || 10;
 
           return {
-            barcode: barcode.toString().trim(),
-            name_en: name_en.toString().trim(),
-            name_ta: name_ta.toString().trim(),
-            selling_price: Number(selling_price),
-            cost_price: Number(cost_price),
-            mrp: Number(mrp),
-            hsn_code: hsn_code.toString().trim(),
-            gst_rate: Number(gst_rate),
-            unit,
-            stock_quantity: Number(stock_quantity),
-            min_stock_alert: Number(min_stock_alert)
+            barcode,
+            name_en: name_en || name_ta,
+            name_ta: name_ta || name_en,
+            selling_price: Number(selling_price) || Number(mrp) || Number(cost_price) || 0,
+            cost_price: Number(cost_price) || 0,
+            mrp: Number(mrp) || Number(selling_price) || 0,
+            hsn_code: hsn_code || '1006',
+            gst_rate: Number(gst_rate) || 0,
+            unit: unit || 'kg',
+            stock_quantity: Number(stock_quantity) || 0,
+            min_stock_alert: Number(min_stock_alert) || 10
           };
         }).filter(item => item.name_en || item.name_ta);
 
         setImportPreview(mapped);
       } catch (err) {
         console.error('Failed to parse excel:', err);
-        alert(lang === 'ta' ? 'எக்செல் கோப்பை படிக்க முடியவில்லை!' : 'Failed to parse Excel file!');
+        alert(lang === 'ta' ? 'எக்செல் கோப்பை படிக்க முடியவில்லை!' : 'Failed to parse Excel file: ' + err.message);
       }
     };
-    reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
   };
 
   // Submit Bulk Import to Server
@@ -230,7 +276,14 @@ export default function ProductsScreen({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items: importPreview })
       });
-      const data = await res.json();
+
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error(`Server response error (HTTP ${res.status}: ${res.statusText})`);
+      }
+
       if (data.success) {
         setImportStatus({
           type: 'success',
@@ -242,7 +295,7 @@ export default function ProductsScreen({
           setImportPreview([]);
           setImportStatus(null);
           if (fileInputRef.current) fileInputRef.current.value = '';
-        }, 1500);
+        }, 1800);
       } else {
         setImportStatus({
           type: 'error',
@@ -253,7 +306,7 @@ export default function ProductsScreen({
       console.error(err);
       setImportStatus({
         type: 'error',
-        message: 'Network error during import'
+        message: err.message || 'Network error during import'
       });
     } finally {
       setImporting(false);

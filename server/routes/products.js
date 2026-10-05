@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const { cleanTamilText } = require('../utils/tamilConverter');
 
 // Get all products with search & filters
 router.get('/', (req, res) => {
@@ -108,7 +109,7 @@ router.post('/', (req, res) => {
     const result = stmt.run(
       finalBarcode,
       name_en.trim(),
-      name_ta.trim(),
+      cleanTamilText(name_ta),
       category_id ? Number(category_id) : null,
       hsn_code.trim(),
       unit,
@@ -178,7 +179,7 @@ router.put('/:id', (req, res) => {
     stmt.run(
       barcode,
       name_en,
-      name_ta,
+      cleanTamilText(name_ta),
       category_id ? Number(category_id) : null,
       hsn_code,
       unit,
@@ -256,77 +257,110 @@ router.post('/bulk-import', (req, res) => {
     let skippedCount = 0;
     const errors = [];
 
+    // Unique barcode generator helper
+    const generateUniqueBarcode = () => {
+      let candidate;
+      let exists;
+      do {
+        candidate = 'GCR' + Math.floor(10000000 + Math.random() * 90000000);
+        exists = checkStmt.get(candidate);
+      } while (exists);
+      return candidate;
+    };
+
     db.exec('BEGIN TRANSACTION;');
     try {
       for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        const name_ta = (item.name_ta || item.name_en || '').toString().trim();
-        const name_en = (item.name_en || item.name_ta || '').toString().trim();
-        const selling_price = Number(item.selling_price || item.price || 0);
-        const hsn_code = (item.hsn_code || '1006').toString().trim();
-        const unit = (item.unit || 'kg').toString().trim().toLowerCase();
-        const cost_price = Number(item.cost_price || 0);
-        const mrp = Number(item.mrp || selling_price);
-        const gst_rate = Number(item.gst_rate !== undefined ? item.gst_rate : 5);
-        const stock_quantity = Number(item.stock_quantity !== undefined ? item.stock_quantity : 100);
-        const min_stock_alert = Number(item.min_stock_alert !== undefined ? item.min_stock_alert : 10);
+        try {
+          const item = items[i];
+          const rawTa = item.name_ta || item.name_en || '';
+          const rawEn = item.name_en || item.name_ta || '';
+          
+          let name_ta = cleanTamilText(rawTa);
+          let name_en = String(rawEn || name_ta).trim();
+          if (!name_ta) name_ta = name_en;
 
-        if (!name_ta && !name_en) {
-          skippedCount++;
-          errors.push(`Row ${i + 1}: Name is required`);
-          continue;
-        }
+          let selling_price = Number(item.selling_price || item.price || 0);
+          const mrp = Number(item.mrp || selling_price);
+          const cost_price = Number(item.cost_price || 0);
 
-        if (isNaN(selling_price) || selling_price <= 0) {
-          skippedCount++;
-          errors.push(`Row ${i + 1}: Valid selling price is required`);
-          continue;
-        }
+          // If selling price is 0, fall back to MRP or cost price
+          if (isNaN(selling_price) || selling_price <= 0) {
+            if (!isNaN(mrp) && mrp > 0) selling_price = mrp;
+            else if (!isNaN(cost_price) && cost_price > 0) selling_price = cost_price;
+          }
 
-        let barcode = item.barcode ? item.barcode.toString().trim() : '';
-
-        if (barcode) {
-          const existing = checkStmt.get(barcode);
-          if (existing) {
-            updateStmt.run(
-              name_en,
-              name_ta,
-              hsn_code,
-              unit,
-              cost_price,
-              selling_price,
-              mrp,
-              gst_rate,
-              stock_quantity,
-              min_stock_alert,
-              barcode
-            );
-            updatedCount++;
+          if (!name_ta && !name_en) {
+            skippedCount++;
+            errors.push(`Row ${i + 1}: Name is required`);
             continue;
           }
-        } else {
-          barcode = 'GCR' + Math.floor(10000000 + Math.random() * 90000000);
-        }
 
-        insertStmt.run(
-          barcode,
-          name_en,
-          name_ta,
-          item.category_id ? Number(item.category_id) : null,
-          hsn_code,
-          unit,
-          cost_price,
-          selling_price,
-          mrp,
-          0,
-          gst_rate,
-          0,
-          stock_quantity,
-          min_stock_alert,
-          item.is_loose_item ? 1 : 0,
-          item.is_quick_item ? 1 : 0
-        );
-        insertedCount++;
+          if (isNaN(selling_price) || selling_price <= 0) {
+            skippedCount++;
+            errors.push(`Row ${i + 1} (${name_en || name_ta}): Valid selling price is required`);
+            continue;
+          }
+
+          const hsn_code = (item.hsn_code || '1006').toString().trim();
+          const unit = (item.unit || 'kg').toString().trim().toLowerCase();
+          const gst_rate = Number(item.gst_rate !== undefined ? item.gst_rate : 5);
+          const stock_quantity = Number(item.stock_quantity !== undefined ? item.stock_quantity : 100);
+          const min_stock_alert = Number(item.min_stock_alert !== undefined ? item.min_stock_alert : 10);
+
+          let barcode = item.barcode ? item.barcode.toString().trim() : '';
+          // Clean scientific notation or float barcode string e.g. "8.90103E+12"
+          if (barcode.includes('e+') || barcode.includes('E+')) {
+            const num = Number(barcode);
+            if (!isNaN(num)) barcode = BigInt(Math.round(num)).toString();
+          }
+
+          if (barcode) {
+            const existing = checkStmt.get(barcode);
+            if (existing) {
+              updateStmt.run(
+                name_en,
+                name_ta,
+                hsn_code,
+                unit,
+                cost_price,
+                selling_price,
+                mrp,
+                gst_rate,
+                stock_quantity,
+                min_stock_alert,
+                barcode
+              );
+              updatedCount++;
+              continue;
+            }
+          } else {
+            barcode = generateUniqueBarcode();
+          }
+
+          insertStmt.run(
+            barcode,
+            name_en,
+            name_ta,
+            item.category_id ? Number(item.category_id) : null,
+            hsn_code,
+            unit,
+            cost_price,
+            selling_price,
+            mrp,
+            0,
+            gst_rate,
+            0,
+            stock_quantity,
+            min_stock_alert,
+            item.is_loose_item ? 1 : 0,
+            item.is_quick_item ? 1 : 0
+          );
+          insertedCount++;
+        } catch (rowErr) {
+          skippedCount++;
+          errors.push(`Row ${i + 1}: ${rowErr.message}`);
+        }
       }
       db.exec('COMMIT;');
     } catch (txnErr) {
@@ -336,7 +370,7 @@ router.post('/bulk-import', (req, res) => {
 
     res.json({
       success: true,
-      message: `Imported successfully! Inserted: ${insertedCount}, Updated: ${updatedCount}, Skipped: ${skippedCount}`,
+      message: `Import completed! Inserted: ${insertedCount}, Updated: ${updatedCount}, Skipped: ${skippedCount}`,
       data: { insertedCount, updatedCount, skippedCount, errors: errors.slice(0, 10) }
     });
   } catch (err) {
