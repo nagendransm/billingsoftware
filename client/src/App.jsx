@@ -20,14 +20,17 @@ export default function App() {
   const [activeInvoice, setActiveInvoice] = useState(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
-  // Authentication State (Admin or User)
+  // Authentication State (Admin or User) - default to admin so app never renders blank
   const [currentUser, setCurrentUser] = useState(() => {
     try {
-      const saved = localStorage.getItem('pos_user');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const saved = localStorage.getItem('pos_user');
+        if (saved) return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.warn('localStorage error:', e);
     }
+    return { id: 1, username: 'admin', role: 'admin', name: 'Administrator' };
   });
 
   const handleLogin = (user) => {

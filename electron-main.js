@@ -71,9 +71,17 @@ function createWindow() {
     mainWindow.show();
   });
 
-  mainWindow.webContents.on('did-fail-load', () => {
-    console.log('Failed to load localhost:5000, retrying in 1s...');
+  mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    console.log(`[Renderer ${level}] ${message} (${sourceId}:${line})`);
+  });
+
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    console.log(`Failed to load ${validatedURL}: ${errorCode} - ${errorDescription}, retrying in 1s...`);
     setTimeout(loadPOS, 1000);
+  });
+
+  mainWindow.webContents.on('render-process-gone', (event, details) => {
+    console.error('Renderer process gone:', details);
   });
 
   mainWindow.on('closed', () => {

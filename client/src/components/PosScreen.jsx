@@ -167,20 +167,17 @@ export default function PosScreen({
   const cartRef = useRef(cart);
   cartRef.current = cart;
   const viewingPastBillRef = useRef(viewingPastBill);
-  // Latest function references so keyboard listener NEVER executes stale closures
+  viewingPastBillRef.current = viewingPastBill;
+
+  // Function references so keyboard listener NEVER executes stale closures
   const handleSaveBillRef = useRef(null);
-  handleSaveBillRef.current = handleSaveBill;
-
   const handleHoldBillRef = useRef(null);
-  handleHoldBillRef.current = handleHoldBill;
-
   const handleReturnToNewBillRef = useRef(null);
-  handleReturnToNewBillRef.current = handleReturnToNewBill;
-
   const handlePrevBillRef = useRef(null);
-  handlePrevBillRef.current = handlePrevBill;
-
   const handleNextBillRef = useRef(null);
+
+  handleReturnToNewBillRef.current = handleReturnToNewBill;
+  handlePrevBillRef.current = handlePrevBill;
   handleNextBillRef.current = handleNextBill;
 
   useEffect(() => {
@@ -603,6 +600,9 @@ export default function PosScreen({
       alert('Error saving bill');
     }
   };
+
+  handleSaveBillRef.current = handleSaveBill;
+  handleHoldBillRef.current = handleHoldBill;
 
   const activeCustomer = customers.find(c => String(c.id) === String(selectedCustomerId));
 
