@@ -10,7 +10,7 @@ import ReceiptModal from './components/ReceiptModal';
 import { translations } from './translations';
 
 export default function App() {
-  const [lang, setLang] = useState('ta'); // 'ta' for Tamil, 'en' for English
+  const [lang, setLang] = useState('en'); // 'en' for English functions, product names in Tamil
   const [activeTab, setActiveTab] = useState('pos');
   const [storeSettings, setStoreSettings] = useState({});
   const [products, setProducts] = useState([]);
