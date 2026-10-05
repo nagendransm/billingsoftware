@@ -167,7 +167,21 @@ export default function PosScreen({
   const cartRef = useRef(cart);
   cartRef.current = cart;
   const viewingPastBillRef = useRef(viewingPastBill);
-  viewingPastBillRef.current = viewingPastBill;
+  // Latest function references so keyboard listener NEVER executes stale closures
+  const handleSaveBillRef = useRef(null);
+  handleSaveBillRef.current = handleSaveBill;
+
+  const handleHoldBillRef = useRef(null);
+  handleHoldBillRef.current = handleHoldBill;
+
+  const handleReturnToNewBillRef = useRef(null);
+  handleReturnToNewBillRef.current = handleReturnToNewBill;
+
+  const handlePrevBillRef = useRef(null);
+  handlePrevBillRef.current = handlePrevBill;
+
+  const handleNextBillRef = useRef(null);
+  handleNextBillRef.current = handleNextBill;
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -175,12 +189,12 @@ export default function PosScreen({
       if (e.key === 'F2') {
         e.preventDefault();
         e.stopPropagation();
-        handleReturnToNewBill();
+        if (handleReturnToNewBillRef.current) handleReturnToNewBillRef.current();
       } else if (e.key === 'F4') {
         e.preventDefault();
         e.stopPropagation();
-        if (viewingPastBillRef.current) {
-          handleReturnToNewBill();
+        if (viewingPastBillRef.current && handleReturnToNewBillRef.current) {
+          handleReturnToNewBillRef.current();
         }
         if (searchInputRef.current) {
           searchInputRef.current.focus();
@@ -189,53 +203,53 @@ export default function PosScreen({
       } else if (e.key === 'F8') {
         e.preventDefault();
         e.stopPropagation();
-        if (!viewingPastBillRef.current) {
-          handleSaveBill(false);
+        if (!viewingPastBillRef.current && handleSaveBillRef.current) {
+          handleSaveBillRef.current(false);
         }
       } else if (e.key === 'F9') {
         e.preventDefault();
         e.stopPropagation();
         if (viewingPastBillRef.current) {
           if (onInvoiceCreated) onInvoiceCreated(viewingPastBillRef.current, true);
-        } else {
-          handleSaveBill(true);
+        } else if (handleSaveBillRef.current) {
+          handleSaveBillRef.current(true);
         }
       } else if (e.key === 'F10') {
         e.preventDefault();
         e.stopPropagation();
-        if (!viewingPastBillRef.current) {
-          handleHoldBill();
+        if (!viewingPastBillRef.current && handleHoldBillRef.current) {
+          handleHoldBillRef.current();
         }
       } else if (e.key === 'PageUp') {
         e.preventDefault();
-        handlePrevBill();
+        if (handlePrevBillRef.current) handlePrevBillRef.current();
       } else if (e.key === 'PageDown') {
         e.preventDefault();
-        handleNextBill();
+        if (handleNextBillRef.current) handleNextBillRef.current();
       } else if (e.key === 'Escape') {
-        if (viewingPastBillRef.current) {
+        if (viewingPastBillRef.current && handleReturnToNewBillRef.current) {
           e.preventDefault();
-          handleReturnToNewBill();
+          handleReturnToNewBillRef.current();
         }
       } else if (e.key === 'ArrowUp') {
         if (viewingPastBillRef.current) {
           e.preventDefault();
-          handlePrevBill();
+          if (handlePrevBillRef.current) handlePrevBillRef.current();
         } else if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT' && e.target.tagName !== 'TEXTAREA') {
           e.preventDefault();
-          handlePrevBill();
+          if (handlePrevBillRef.current) handlePrevBillRef.current();
         }
       } else if (e.key === 'ArrowDown') {
         if (viewingPastBillRef.current) {
           e.preventDefault();
-          handleNextBill();
+          if (handleNextBillRef.current) handleNextBillRef.current();
         }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, [pastBillIndex, pastInvoices, draftBill]);
+  }, []);
 
   // Alphabetical sorting helper (Tamil Unicode aware & English)
   const sortProductsAlphabetically = (items, currentLang = 'ta') => {

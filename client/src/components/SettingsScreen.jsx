@@ -27,6 +27,18 @@ export default function SettingsScreen({
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
 
+  // Built-in Confirmation Dialog State (Works 100% reliably in Electron / Desktop without window.prompt)
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    type: null, // 'products' or 'customers'
+    title: '',
+    description: '',
+    confirmText: '',
+    inputValue: '',
+    loading: false,
+    error: ''
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -258,25 +270,17 @@ export default function SettingsScreen({
             </div>
             <button
               type="button"
-              onClick={async () => {
-                const conf = window.prompt(
-                  'Are you sure you want to PERMANENTLY delete ALL products? Type "DELETE" to confirm:'
-                );
-                if (conf === 'DELETE') {
-                  try {
-                    const res = await fetch('/api/products', { method: 'DELETE' });
-                    const data = await res.json();
-                    if (data.success) {
-                      alert('All products have been deleted successfully!');
-                      if (onRefreshProducts) onRefreshProducts();
-                    } else {
-                      alert(data.error || 'Failed to delete products');
-                    }
-                  } catch (err) {
-                    console.error(err);
-                    alert('Error deleting products');
-                  }
-                }
+              onClick={() => {
+                setConfirmDialog({
+                  isOpen: true,
+                  type: 'products',
+                  title: 'Completely Delete All Products?',
+                  description: 'This will permanently delete all product records, prices, barcodes, and stock quantities from your database. This action CANNOT be undone.',
+                  confirmText: 'DELETE',
+                  inputValue: '',
+                  loading: false,
+                  error: ''
+                });
               }}
               className="w-full py-1.5 bg-rose-700 hover:bg-rose-800 text-white rounded font-bold text-xs shadow-xs"
             >
@@ -297,25 +301,17 @@ export default function SettingsScreen({
             </div>
             <button
               type="button"
-              onClick={async () => {
-                const conf = window.prompt(
-                  'Are you sure you want to PERMANENTLY delete ALL customers & credit history? Type "DELETE" to confirm:'
-                );
-                if (conf === 'DELETE') {
-                  try {
-                    const res = await fetch('/api/customers', { method: 'DELETE' });
-                    const data = await res.json();
-                    if (data.success) {
-                      alert('All customers and credit ledger records deleted successfully!');
-                      if (onRefreshCustomers) onRefreshCustomers();
-                    } else {
-                      alert(data.error || 'Failed to delete customers');
-                    }
-                  } catch (err) {
-                    console.error(err);
-                    alert('Error deleting customers');
-                  }
-                }
+              onClick={() => {
+                setConfirmDialog({
+                  isOpen: true,
+                  type: 'customers',
+                  title: 'Completely Delete All Customers & Credit Ledgers?',
+                  description: 'This will permanently delete all customer names, phone numbers, GSTINs, and entire credit purchase & payment transaction histories. This action CANNOT be undone.',
+                  confirmText: 'DELETE',
+                  inputValue: '',
+                  loading: false,
+                  error: ''
+                });
               }}
               className="w-full py-1.5 bg-rose-700 hover:bg-rose-800 text-white rounded font-bold text-xs shadow-xs"
             >
@@ -325,6 +321,101 @@ export default function SettingsScreen({
 
         </div>
       </div>
+
+      {/* ======================================================== */}
+      {/* BUILT-IN DANGER ZONE CONFIRMATION MODAL                  */}
+      {/* ======================================================== */}
+      {confirmDialog.isOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3">
+          <div className="bg-white rounded-lg border-2 border-rose-600 max-w-md w-full shadow-2xl overflow-hidden text-xs">
+            
+            {/* Modal Header */}
+            <div className="bg-rose-700 text-white px-4 py-2.5 flex items-center justify-between">
+              <span className="font-bold text-sm flex items-center space-x-1.5">
+                <span>⚠️</span>
+                <span>{confirmDialog.title}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+                className="text-rose-200 hover:text-white font-bold text-base"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4 space-y-3">
+              <p className="text-slate-700 leading-relaxed">
+                {confirmDialog.description}
+              </p>
+
+              {confirmDialog.error && (
+                <div className="p-2 bg-rose-100 border border-rose-300 rounded text-rose-900 font-bold text-[11px]">
+                  ⚠️ {confirmDialog.error}
+                </div>
+              )}
+
+              <div className="bg-rose-50 p-2.5 rounded border border-rose-200">
+                <label className="block font-bold text-rose-950 mb-1">
+                  Type <span className="font-mono bg-white px-1 py-0.5 rounded border border-rose-300 text-rose-700">DELETE</span> to confirm:
+                </label>
+                <input
+                  type="text"
+                  autoFocus
+                  value={confirmDialog.inputValue}
+                  onChange={(e) => setConfirmDialog(prev => ({ ...prev, inputValue: e.target.value, error: '' }))}
+                  placeholder="Type DELETE here"
+                  className="w-full px-2.5 py-1.5 border border-rose-300 rounded font-mono font-bold text-xs uppercase focus:outline-none focus:border-rose-700 bg-white"
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-slate-100 px-4 py-2.5 border-t border-slate-300 flex justify-end space-x-2">
+              <button
+                type="button"
+                onClick={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+                className="px-3 py-1.5 bg-white border border-slate-300 rounded font-bold text-slate-700 hover:bg-slate-50"
+              >
+                Cancel / ரத்து
+              </button>
+
+              <button
+                type="button"
+                disabled={confirmDialog.inputValue.trim().toUpperCase() !== 'DELETE' || confirmDialog.loading}
+                onClick={async () => {
+                  setConfirmDialog(prev => ({ ...prev, loading: true, error: '' }));
+                  try {
+                    const endpoint = confirmDialog.type === 'products' ? '/api/products' : '/api/customers';
+                    const res = await fetch(endpoint, { method: 'DELETE' });
+                    const data = await res.json();
+                    if (data.success) {
+                      setConfirmDialog(prev => ({ ...prev, isOpen: false, loading: false }));
+                      alert(data.message || 'Data deleted successfully!');
+                      if (confirmDialog.type === 'products' && onRefreshProducts) {
+                        onRefreshProducts();
+                      }
+                      if (confirmDialog.type === 'customers' && onRefreshCustomers) {
+                        onRefreshCustomers();
+                      }
+                    } else {
+                      setConfirmDialog(prev => ({ ...prev, loading: false, error: data.error || data.message || 'Failed to delete' }));
+                    }
+                  } catch (err) {
+                    console.error(err);
+                    setConfirmDialog(prev => ({ ...prev, loading: false, error: 'Network error deleting data' }));
+                  }
+                }}
+                className="px-4 py-1.5 bg-rose-700 hover:bg-rose-800 disabled:opacity-40 text-white font-bold rounded shadow-xs"
+              >
+                {confirmDialog.loading ? 'Deleting...' : 'Permanently Delete Now'}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
