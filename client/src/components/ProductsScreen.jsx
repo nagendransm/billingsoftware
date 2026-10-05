@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import * as XLSX from 'xlsx';
 
 export default function ProductsScreen({
   products = [],
@@ -11,6 +12,13 @@ export default function ProductsScreen({
   const [selectedCat, setSelectedCat] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+
+  // Excel Import States
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importPreview, setImportPreview] = useState([]);
+  const [importStatus, setImportStatus] = useState(null);
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     barcode: '',
@@ -102,6 +110,156 @@ export default function ProductsScreen({
     }
   };
 
+  // Download Sample Excel Template
+  const handleDownloadTemplate = () => {
+    const templateData = [
+      {
+        'Barcode': 'GCR10001001',
+        'Item Name (English)': 'Ponni Boiled Rice 25kg',
+        'பொருள் பெயர் (தமிழ்)': 'பொன்னி புழுங்கல் அரிசி 25கிலோ',
+        'Selling Price': 1250,
+        'Cost Price': 1150,
+        'MRP': 1300,
+        'HSN Code': '1006',
+        'GST Rate (%)': 5,
+        'Unit': 'bag',
+        'Stock Quantity': 50,
+        'Min Alert': 5
+      },
+      {
+        'Barcode': '8901030383182',
+        'Item Name (English)': 'Toor Dal 1kg',
+        'பொருள் பெயர் (தமிழ்)': 'துவரம் பருப்பு 1 கிலோ',
+        'Selling Price': 160,
+        'Cost Price': 140,
+        'MRP': 170,
+        'HSN Code': '0713',
+        'GST Rate (%)': 0,
+        'Unit': 'kg',
+        'Stock Quantity': 100,
+        'Min Alert': 10
+      },
+      {
+        'Barcode': '',
+        'Item Name (English)': 'Groundnut Oil 1L',
+        'பொருள் பெயர் (தமிழ்)': 'கடலை எண்ணெய் 1 லிட்டர்',
+        'Selling Price': 195,
+        'Cost Price': 175,
+        'MRP': 210,
+        'HSN Code': '1515',
+        'GST Rate (%)': 5,
+        'Unit': 'ltr',
+        'Stock Quantity': 30,
+        'Min Alert': 5
+      }
+    ];
+
+    const worksheet = XLSX.utils.json_to_sheet(templateData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Products');
+    XLSX.writeFile(workbook, 'Grocery_Products_Template.xlsx');
+  };
+
+  // Handle Excel File Upload & Parse
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setImportStatus(null);
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const bstr = evt.target.result;
+        const workbook = XLSX.read(bstr, { type: 'binary' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const rawJson = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+        if (!rawJson || rawJson.length === 0) {
+          alert(lang === 'ta' ? 'எக்செல் கோப்பில் விவரங்கள் இல்லை!' : 'Excel sheet is empty!');
+          return;
+        }
+
+        // Map flexible column headers (English & Tamil variations)
+        const mapped = rawJson.map((row) => {
+          const name_en = row['Item Name (English)'] || row['name_en'] || row['Item Name'] || row['Name'] || row['English Name'] || '';
+          const name_ta = row['பொருள் பெயர் (தமிழ்)'] || row['name_ta'] || row['Tamil Name'] || row['பொருள் பெயர்'] || name_en;
+          const barcode = row['Barcode'] || row['barcode'] || row['பார்கோடு'] || '';
+          const selling_price = row['Selling Price'] || row['selling_price'] || row['Price'] || row['விலை'] || row['விற்பனை விலை'] || 0;
+          const cost_price = row['Cost Price'] || row['cost_price'] || row['கொள்முதல் விலை'] || 0;
+          const mrp = row['MRP'] || row['mrp'] || selling_price;
+          const hsn_code = row['HSN Code'] || row['hsn_code'] || row['HSN'] || '1006';
+          const gst_rate = row['GST Rate (%)'] || row['gst_rate'] || row['GST'] || row['GST %'] || 5;
+          const unit = (row['Unit'] || row['unit'] || row['அலகு'] || 'kg').toString().toLowerCase().trim();
+          const stock_quantity = row['Stock Quantity'] || row['stock_quantity'] || row['இருப்பு'] || 100;
+          const min_stock_alert = row['Min Alert'] || row['min_stock_alert'] || 10;
+
+          return {
+            barcode: barcode.toString().trim(),
+            name_en: name_en.toString().trim(),
+            name_ta: name_ta.toString().trim(),
+            selling_price: Number(selling_price),
+            cost_price: Number(cost_price),
+            mrp: Number(mrp),
+            hsn_code: hsn_code.toString().trim(),
+            gst_rate: Number(gst_rate),
+            unit,
+            stock_quantity: Number(stock_quantity),
+            min_stock_alert: Number(min_stock_alert)
+          };
+        }).filter(item => item.name_en || item.name_ta);
+
+        setImportPreview(mapped);
+      } catch (err) {
+        console.error('Failed to parse excel:', err);
+        alert(lang === 'ta' ? 'எக்செல் கோப்பை படிக்க முடியவில்லை!' : 'Failed to parse Excel file!');
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  // Submit Bulk Import to Server
+  const handleConfirmImport = async () => {
+    if (!importPreview || importPreview.length === 0) return;
+
+    setImporting(true);
+    setImportStatus(null);
+    try {
+      const res = await fetch('/api/products/bulk-import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: importPreview })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setImportStatus({
+          type: 'success',
+          message: data.message
+        });
+        if (onRefresh) onRefresh();
+        setTimeout(() => {
+          setIsImportModalOpen(false);
+          setImportPreview([]);
+          setImportStatus(null);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+        }, 1500);
+      } else {
+        setImportStatus({
+          type: 'error',
+          message: data.error || data.message || 'Import failed'
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      setImportStatus({
+        type: 'error',
+        message: 'Network error during import'
+      });
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const sortedAndFiltered = [...products]
     .filter(p => {
       const q = search.toLowerCase().trim();
@@ -150,8 +308,22 @@ export default function ProductsScreen({
               }
             }}
             placeholder={lang === 'ta' ? 'பொருள் பெயர் / பார்கோடு கொண்டு தேடுக...' : 'Search product / barcode...'}
-            className="px-3 py-1.5 border border-slate-400 rounded text-xs w-64 focus:outline-none"
+            className="px-3 py-1.5 border border-slate-400 rounded text-xs w-56 sm:w-64 focus:outline-none"
           />
+
+          {/* Import from Excel Button */}
+          <button
+            onClick={() => {
+              setImportPreview([]);
+              setImportStatus(null);
+              setIsImportModalOpen(true);
+            }}
+            className="px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white rounded text-xs font-bold font-tamil flex items-center space-x-1 shadow-xs"
+            title={lang === 'ta' ? 'எக்செல் மூலம் பொருட்களை இறக்குமதி செய்க' : 'Import products from Excel sheet'}
+          >
+            <span>📊</span>
+            <span>{lang === 'ta' ? 'எக்செல் இறக்குமதி' : 'Import Excel'}</span>
+          </button>
 
           <button
             onClick={openAddModal}
@@ -362,6 +534,169 @@ export default function ProductsScreen({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* EXCEL IMPORT MODAL & PREVIEW TABLE                       */}
+      {/* ======================================================== */}
+      {isImportModalOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3">
+          <div className="bg-white rounded-lg border border-slate-400 max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden text-xs">
+            
+            {/* Modal Header */}
+            <div className="bg-slate-900 text-white px-4 py-2.5 flex justify-between items-center flex-shrink-0">
+              <div className="flex items-center space-x-2">
+                <span className="text-base">📊</span>
+                <span className="font-bold text-sm font-tamil">
+                  {lang === 'ta' ? 'எக்செல் மூலம் பொருட்கள் இறக்குமதி (Excel Import)' : 'Import Products from Excel Sheet'}
+                </span>
+              </div>
+              <button
+                onClick={() => setIsImportModalOpen(false)}
+                className="text-slate-400 hover:text-white font-bold text-base px-1.5"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4 flex-1 overflow-y-auto space-y-4">
+              
+              {/* Instructions and Download Template Bar */}
+              <div className="bg-blue-50 border border-blue-200 rounded p-3 flex flex-wrap justify-between items-center gap-2">
+                <div>
+                  <h4 className="font-bold text-blue-900 font-tamil text-xs">
+                    {lang === 'ta' ? 'மாதிரி எக்செல் கோப்பு (Sample Template):' : 'Sample Excel Template:'}
+                  </h4>
+                  <p className="text-[11px] text-blue-800 mt-0.5">
+                    {lang === 'ta' 
+                      ? 'முதலில் மாதிரி கோப்பைப் பதிவிறக்கி அதில் உங்கள் பொருட்களை நிரப்பி பதிவேற்றலாம்.' 
+                      : 'Download our template, enter your items, and upload the file below.'}
+                  </p>
+                </div>
+                <button
+                  onClick={handleDownloadTemplate}
+                  className="px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded text-xs flex items-center space-x-1 shadow-xs font-tamil"
+                >
+                  <span>⬇️</span>
+                  <span>{lang === 'ta' ? 'மாதிரி எக்செல் பதிவிறக்கு (.xlsx)' : 'Download Template (.xlsx)'}</span>
+                </button>
+              </div>
+
+              {/* File Upload Box */}
+              <div className="border-2 border-dashed border-slate-300 rounded-lg p-5 text-center bg-slate-50 hover:bg-slate-100 transition-colors">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx, .xls, .csv"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  id="excel-file-input"
+                />
+                <label htmlFor="excel-file-input" className="cursor-pointer block">
+                  <span className="text-3xl block mb-1">📁</span>
+                  <span className="font-bold text-slate-800 text-xs block font-tamil">
+                    {lang === 'ta' ? 'எக்செல் கோப்பைத் தேர்வு செய்க (.xlsx, .xls, .csv)' : 'Click to select Excel File (.xlsx, .xls, .csv)'}
+                  </span>
+                  <span className="text-[10px] text-slate-500 mt-1 block">
+                    Supported: Microsoft Excel (.xlsx, .xls) and CSV
+                  </span>
+                </label>
+              </div>
+
+              {/* Status Message */}
+              {importStatus && (
+                <div className={`p-2.5 rounded border text-xs font-bold ${
+                  importStatus.type === 'success'
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                    : 'bg-rose-50 text-rose-800 border-rose-300'
+                }`}>
+                  {importStatus.type === 'success' ? '✅ ' : '⚠️ '}
+                  {importStatus.message}
+                </div>
+              )}
+
+              {/* Import Preview */}
+              {importPreview.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-bold text-slate-800 text-xs font-tamil">
+                      {lang === 'ta' ? 'இறக்குமதி செய்யப்பட உள்ள பொருட்கள்' : 'Items Ready for Import'} ({importPreview.length}):
+                    </h4>
+                    <span className="text-[11px] text-slate-500 font-mono">
+                      {importPreview.length} items parsed
+                    </span>
+                  </div>
+
+                  <div className="border border-slate-300 rounded max-h-60 overflow-y-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead className="bg-slate-100 sticky top-0 border-b border-slate-300 text-slate-700 font-bold">
+                        <tr>
+                          <th className="p-1.5 border-r border-slate-300 text-center w-8">#</th>
+                          <th className="p-1.5 border-r border-slate-300">பொருள் பெயர் (தமிழ்)</th>
+                          <th className="p-1.5 border-r border-slate-300">Item Name (EN)</th>
+                          <th className="p-1.5 border-r border-slate-300 text-right">விலை (₹)</th>
+                          <th className="p-1.5 border-r border-slate-300 text-center">HSN</th>
+                          <th className="p-1.5 border-r border-slate-300 text-center">GST %</th>
+                          <th className="p-1.5 border-r border-slate-300 text-center">அலகு (Unit)</th>
+                          <th className="p-1.5 text-center">இருப்பு (Stock)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200">
+                        {importPreview.map((item, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50">
+                            <td className="p-1.5 text-center font-mono border-r border-slate-200 text-slate-500">{idx + 1}</td>
+                            <td className="p-1.5 font-bold font-tamil border-r border-slate-200">{item.name_ta}</td>
+                            <td className="p-1.5 border-r border-slate-200 text-slate-700">{item.name_en}</td>
+                            <td className="p-1.5 text-right font-mono font-bold border-r border-slate-200">₹{item.selling_price}</td>
+                            <td className="p-1.5 text-center font-mono border-r border-slate-200">{item.hsn_code}</td>
+                            <td className="p-1.5 text-center font-mono border-r border-slate-200">{item.gst_rate}%</td>
+                            <td className="p-1.5 text-center font-mono border-r border-slate-200">{item.unit}</td>
+                            <td className="p-1.5 text-center font-mono">{item.stock_quantity}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-slate-100 px-4 py-2.5 border-t border-slate-300 flex justify-end space-x-2 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsImportModalOpen(false);
+                  setImportPreview([]);
+                  setImportStatus(null);
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+                }}
+                className="px-3 py-1.5 rounded border border-slate-300 font-bold bg-white hover:bg-slate-50"
+              >
+                ரத்து (Close)
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmImport}
+                disabled={importing || importPreview.length === 0}
+                className="px-4 py-1.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-bold rounded flex items-center space-x-1 font-tamil shadow-xs"
+              >
+                {importing ? (
+                  <span>சேமிக்கிறது...</span>
+                ) : (
+                  <>
+                    <span>✓</span>
+                    <span>{lang === 'ta' ? `பொருட்களை இறக்குமதி செய் (${importPreview.length})` : `Import ${importPreview.length} Products`}</span>
+                  </>
+                )}
+              </button>
+            </div>
+
           </div>
         </div>
       )}

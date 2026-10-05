@@ -219,6 +219,131 @@ router.post('/:id/adjust-stock', (req, res) => {
   }
 });
 
+// Bulk import products (from Excel/CSV)
+router.post('/bulk-import', (req, res) => {
+  try {
+    const { items = [] } = req.body;
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, message: 'No items provided for import' });
+    }
+
+    const checkStmt = db.prepare('SELECT id FROM products WHERE barcode = ?');
+    const updateStmt = db.prepare(`
+      UPDATE products SET
+        name_en = ?,
+        name_ta = ?,
+        hsn_code = ?,
+        unit = ?,
+        cost_price = ?,
+        selling_price = ?,
+        mrp = ?,
+        gst_rate = ?,
+        stock_quantity = ?,
+        min_stock_alert = ?
+      WHERE barcode = ?
+    `);
+
+    const insertStmt = db.prepare(`
+      INSERT INTO products (
+        barcode, name_en, name_ta, category_id, hsn_code, unit,
+        cost_price, selling_price, mrp, discount_percent, gst_rate,
+        cess_rate, stock_quantity, min_stock_alert, is_loose_item, is_quick_item
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    let insertedCount = 0;
+    let updatedCount = 0;
+    let skippedCount = 0;
+    const errors = [];
+
+    db.exec('BEGIN TRANSACTION;');
+    try {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const name_ta = (item.name_ta || item.name_en || '').toString().trim();
+        const name_en = (item.name_en || item.name_ta || '').toString().trim();
+        const selling_price = Number(item.selling_price || item.price || 0);
+        const hsn_code = (item.hsn_code || '1006').toString().trim();
+        const unit = (item.unit || 'kg').toString().trim().toLowerCase();
+        const cost_price = Number(item.cost_price || 0);
+        const mrp = Number(item.mrp || selling_price);
+        const gst_rate = Number(item.gst_rate !== undefined ? item.gst_rate : 5);
+        const stock_quantity = Number(item.stock_quantity !== undefined ? item.stock_quantity : 100);
+        const min_stock_alert = Number(item.min_stock_alert !== undefined ? item.min_stock_alert : 10);
+
+        if (!name_ta && !name_en) {
+          skippedCount++;
+          errors.push(`Row ${i + 1}: Name is required`);
+          continue;
+        }
+
+        if (isNaN(selling_price) || selling_price <= 0) {
+          skippedCount++;
+          errors.push(`Row ${i + 1}: Valid selling price is required`);
+          continue;
+        }
+
+        let barcode = item.barcode ? item.barcode.toString().trim() : '';
+
+        if (barcode) {
+          const existing = checkStmt.get(barcode);
+          if (existing) {
+            updateStmt.run(
+              name_en,
+              name_ta,
+              hsn_code,
+              unit,
+              cost_price,
+              selling_price,
+              mrp,
+              gst_rate,
+              stock_quantity,
+              min_stock_alert,
+              barcode
+            );
+            updatedCount++;
+            continue;
+          }
+        } else {
+          barcode = 'GCR' + Math.floor(10000000 + Math.random() * 90000000);
+        }
+
+        insertStmt.run(
+          barcode,
+          name_en,
+          name_ta,
+          item.category_id ? Number(item.category_id) : null,
+          hsn_code,
+          unit,
+          cost_price,
+          selling_price,
+          mrp,
+          0,
+          gst_rate,
+          0,
+          stock_quantity,
+          min_stock_alert,
+          item.is_loose_item ? 1 : 0,
+          item.is_quick_item ? 1 : 0
+        );
+        insertedCount++;
+      }
+      db.exec('COMMIT;');
+    } catch (txnErr) {
+      db.exec('ROLLBACK;');
+      throw txnErr;
+    }
+
+    res.json({
+      success: true,
+      message: `Imported successfully! Inserted: ${insertedCount}, Updated: ${updatedCount}, Skipped: ${skippedCount}`,
+      data: { insertedCount, updatedCount, skippedCount, errors: errors.slice(0, 10) }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Delete product
 router.delete('/:id', (req, res) => {
   try {
