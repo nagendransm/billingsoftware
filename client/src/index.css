@@ -1,16 +1,28 @@
 @import "tailwindcss";
 
+/* TSC-Avarangal font definition */
+@font-face {
+  font-family: 'TSC-Avarangal';
+  src: local('TSC-Avarangal'),
+       local('TSCAvarangal'),
+       local('tsc-avarangal'),
+       url('/fonts/tsc-avarangal.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   body {
-    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Noto Sans Tamil', 'Latha', Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'TSC-Avarangal', 'Noto Sans Tamil', 'Mukta Malar', 'Latha', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
     color: #1f2937;
     background-color: #f3f4f6;
   }
 }
 
-/* Tamil font optimization */
+/* Tamil font optimization with TSC-Avarangal priority */
 .font-tamil {
-  font-family: 'Noto Sans Tamil', 'Mukta Malar', 'Latha', 'Segoe UI', system-ui, sans-serif;
+  font-family: 'TSC-Avarangal', 'Noto Sans Tamil', 'Mukta Malar', 'Latha', 'Segoe UI', system-ui, sans-serif;
 }
 
 /* Custom scrollbars */
@@ -92,7 +104,7 @@
     color: #000000 !important;
     background: #ffffff !important;
     border: none !important;
-    font-family: 'Segoe UI', 'Noto Sans Tamil', monospace !important;
+    font-family: 'TSC-Avarangal', 'Noto Sans Tamil', 'Mukta Malar', 'Segoe UI', monospace !important;
     font-size: 11px !important;
     line-height: 1.25 !important;
     page-break-after: avoid !important;
