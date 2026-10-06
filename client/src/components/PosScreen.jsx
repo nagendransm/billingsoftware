@@ -42,12 +42,21 @@ export default function PosScreen({
   const [viewingPastBill, setViewingPastBill] = useState(null);
   const [draftBill, setDraftBill] = useState(null);
 
+  // Alt+S Past Bills Search Modal State
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [searchDate, setSearchDate] = useState('');
+  const [searchBillNo, setSearchBillNo] = useState('');
+  const [searchCustomer, setSearchCustomer] = useState('');
+  const [modalInvoices, setModalInvoices] = useState([]);
+  const [loadingModalInvoices, setLoadingModalInvoices] = useState(false);
+
   // Refs
   const searchContainerRef = useRef(null);
   const searchInputRef = useRef(null);
   const dropdownListRef = useRef(null);
   const qtyInputRef = useRef(null);
   const customerDropdownRef = useRef(null);
+  const searchModalBillNoInputRef = useRef(null);
 
   // Auto-focus search on load
   useEffect(() => {
@@ -147,6 +156,72 @@ export default function PosScreen({
     }
   };
 
+  // Load a specific invoice directly (e.g. from Alt+S search modal)
+  const loadSpecificInvoice = async (invoiceId) => {
+    if (pastBillIndex === -1) {
+      setDraftBill({
+        cart,
+        selectedCustomerId,
+        customerName,
+        customerPhone,
+        customerGstin,
+        paymentMode,
+        cashReceived,
+        additionalDiscount,
+        notes
+      });
+    }
+
+    try {
+      const res = await fetch(`/api/invoices/${invoiceId}`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        // Find index in pastInvoices list if present
+        const idx = pastInvoices.findIndex(p => p.id === Number(invoiceId));
+        setPastBillIndex(idx !== -1 ? idx : 0);
+        setViewingPastBill(data.data);
+        setShowSearchModal(false);
+      }
+    } catch (err) {
+      console.error('Failed to load specific invoice:', err);
+    }
+  };
+
+  // Search past invoices for the Alt+S modal
+  const fetchFilteredInvoices = async (dateVal, billNoVal, custVal) => {
+    setLoadingModalInvoices(true);
+    try {
+      const params = new URLSearchParams();
+      params.append('limit', '100');
+      if (dateVal) params.append('date', dateVal);
+      if (billNoVal) params.append('invoice_no', billNoVal.trim());
+      if (custVal) params.append('customer_name', custVal.trim());
+
+      const res = await fetch(`/api/invoices?${params.toString()}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setModalInvoices(data.data);
+      }
+    } catch (err) {
+      console.error('Failed to search invoices:', err);
+    } finally {
+      setLoadingModalInvoices(false);
+    }
+  };
+
+  // Open Alt+S search modal
+  const handleOpenSearchModal = () => {
+    setShowSearchModal(true);
+    // Initial fetch using current filters (or blank)
+    fetchFilteredInvoices(searchDate, searchBillNo, searchCustomer);
+    setTimeout(() => {
+      if (searchModalBillNoInputRef.current) {
+        searchModalBillNoInputRef.current.focus();
+        searchModalBillNoInputRef.current.select();
+      }
+    }, 100);
+  };
+
   const handlePrevBill = () => {
     if (pastInvoices.length === 0) return;
     loadPastBill(pastBillIndex + 1);
@@ -175,13 +250,40 @@ export default function PosScreen({
   const handleReturnToNewBillRef = useRef(null);
   const handlePrevBillRef = useRef(null);
   const handleNextBillRef = useRef(null);
+  const handleOpenSearchModalRef = useRef(null);
+  const showSearchModalRef = useRef(showSearchModal);
+  showSearchModalRef.current = showSearchModal;
 
   handleReturnToNewBillRef.current = handleReturnToNewBill;
   handlePrevBillRef.current = handlePrevBill;
   handleNextBillRef.current = handleNextBill;
+  handleOpenSearchModalRef.current = handleOpenSearchModal;
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Alt + S to open Past Bills Search Modal
+      if (e.altKey && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (handleOpenSearchModalRef.current) handleOpenSearchModalRef.current();
+        return;
+      }
+
+      // Close modal on Escape if open
+      if (e.key === 'Escape') {
+        if (showSearchModalRef.current) {
+          e.preventDefault();
+          e.stopPropagation();
+          setShowSearchModal(false);
+          return;
+        }
+        if (viewingPastBillRef.current && handleReturnToNewBillRef.current) {
+          e.preventDefault();
+          handleReturnToNewBillRef.current();
+          return;
+        }
+      }
+
       // Reliable function key handling across all browser/electron states
       if (e.key === 'F2') {
         e.preventDefault();
@@ -752,8 +854,19 @@ export default function PosScreen({
         </div>
 
 
-        {/* Keyboard Up / Down Past Bill Navigators */}
-        <div className="flex items-center space-x-1 whitespace-nowrap ml-auto">
+        {/* Keyboard Up / Down Past Bill Navigators & Search Button */}
+        <div className="flex items-center space-x-1.5 whitespace-nowrap ml-auto">
+          {/* Alt+S Search Past Bills Button */}
+          <button
+            onClick={handleOpenSearchModal}
+            title={lang === 'ta' ? 'பழைய ரசீதுகளைத் தேடுக [Alt+S]' : 'Search Past Bills [Alt+S]'}
+            className="px-2.5 py-0.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded font-bold text-xs flex items-center space-x-1 transition-colors shadow-xs"
+          >
+            <span>🔍</span>
+            <span className="font-tamil">{lang === 'ta' ? 'பில் தேடல்' : 'Search Bills'}</span>
+            <span className="text-[10px] bg-blue-800 px-1 py-0.2 rounded font-mono text-blue-100">[Alt+S]</span>
+          </button>
+
           <button
             onClick={handlePrevBill}
             disabled={pastInvoices.length === 0 || pastBillIndex >= pastInvoices.length - 1}
@@ -1346,6 +1459,209 @@ export default function PosScreen({
         </div>
 
       </div>
+
+      {/* ======================================================== */}
+      {/* ALT + S: PAST BILLS SEARCH MODAL (DATE, BILL NO, CUSTOMER) */}
+      {/* ======================================================== */}
+      {showSearchModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3 animate-fade-in select-none">
+          <div className="bg-white rounded-lg shadow-2xl border border-slate-300 w-full max-w-3xl flex flex-col max-h-[88vh] overflow-hidden">
+            
+            {/* Modal Header */}
+            <div className="bg-slate-900 text-white px-4 py-2.5 flex items-center justify-between border-b border-slate-700">
+              <div className="flex items-center space-x-2">
+                <span className="text-base">🔍</span>
+                <h3 className="font-bold text-sm font-tamil">
+                  {lang === 'ta' ? 'பழைய ரசீதுகளைத் தேடுக (Search Past Bills)' : 'Search Past Bills'}
+                </h3>
+                <span className="bg-blue-900 border border-blue-600 text-blue-200 text-[10px] font-mono px-1.5 py-0.5 rounded">
+                  Alt+S
+                </span>
+              </div>
+              <button
+                onClick={() => setShowSearchModal(false)}
+                title="Close [Esc]"
+                className="text-slate-400 hover:text-white hover:bg-slate-800 p-1 rounded font-bold text-sm transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* 3 Search Filter Input Boxes (Date, Bill No, Customer Name) */}
+            <div className="bg-slate-100 p-3 border-b border-slate-300 grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+              
+              {/* 1. Changeable Date Box */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1 font-tamil">
+                  {lang === 'ta' ? '📅 தேதி (Date):' : '📅 Date:'}
+                </label>
+                <input
+                  type="date"
+                  value={searchDate}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSearchDate(val);
+                    fetchFilteredInvoices(val, searchBillNo, searchCustomer);
+                  }}
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded bg-white text-slate-900 font-mono font-semibold focus:border-blue-600 focus:outline-none shadow-2xs"
+                />
+              </div>
+
+              {/* 2. Bill No Search Box */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1 font-tamil">
+                  {lang === 'ta' ? '🧾 ரசீது எண் (Bill No):' : '🧾 Bill No:'}
+                </label>
+                <input
+                  ref={searchModalBillNoInputRef}
+                  type="text"
+                  value={searchBillNo}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSearchBillNo(val);
+                    fetchFilteredInvoices(searchDate, val, searchCustomer);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && modalInvoices.length > 0) {
+                      loadSpecificInvoice(modalInvoices[0].id);
+                    }
+                  }}
+                  placeholder={lang === 'ta' ? 'எ.கா: BILL/1010 அல்லது 1010' : 'e.g. BILL/1010 or 1010'}
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded bg-white text-slate-900 font-mono font-semibold focus:border-blue-600 focus:outline-none shadow-2xs"
+                />
+              </div>
+
+              {/* 3. Customer Name / Phone Search Box */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1 font-tamil">
+                  {lang === 'ta' ? '👤 வாடிக்கையாளர் பெயர் (Customer):' : '👤 Customer Name / Ph:'}
+                </label>
+                <input
+                  type="text"
+                  value={searchCustomer}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSearchCustomer(val);
+                    fetchFilteredInvoices(searchDate, searchBillNo, val);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && modalInvoices.length > 0) {
+                      loadSpecificInvoice(modalInvoices[0].id);
+                    }
+                  }}
+                  placeholder={lang === 'ta' ? 'பெயர் அல்லது தொலைபேசி எண்' : 'Name or phone number'}
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded bg-white text-slate-900 font-semibold focus:border-blue-600 focus:outline-none shadow-2xs"
+                />
+              </div>
+
+            </div>
+
+            {/* Quick Filter Reset & Status Bar */}
+            <div className="px-3 py-1 bg-slate-200/80 border-b border-slate-300 flex items-center justify-between text-[11px] text-slate-600 font-mono">
+              <div>
+                <span>{lang === 'ta' ? 'கண்டுபிடிக்கப்பட்ட ரசீதுகள்:' : 'Invoices found:'} </span>
+                <strong className="text-slate-900">{modalInvoices.length}</strong>
+              </div>
+              {(searchDate || searchBillNo || searchCustomer) && (
+                <button
+                  onClick={() => {
+                    setSearchDate('');
+                    setSearchBillNo('');
+                    setSearchCustomer('');
+                    fetchFilteredInvoices('', '', '');
+                  }}
+                  className="text-blue-700 hover:text-blue-900 hover:underline font-bold"
+                >
+                  ✕ {lang === 'ta' ? 'அனைத்து வடிகட்டிகளையும் நீக்கு (Clear Filters)' : 'Clear Filters'}
+                </button>
+              )}
+            </div>
+
+            {/* Invoices Results Table */}
+            <div className="flex-1 overflow-y-auto p-2 bg-slate-50 min-h-[220px]">
+              {loadingModalInvoices ? (
+                <div className="text-center py-10 text-slate-500 font-tamil">
+                  தேடப்படுகிறது... (Searching...)
+                </div>
+              ) : modalInvoices.length === 0 ? (
+                <div className="text-center py-10 text-slate-500 font-tamil">
+                  ரசீதுகள் எதுவும் கிடைக்கவில்லை (No matching invoices found).
+                </div>
+              ) : (
+                <table className="w-full text-left text-xs bg-white rounded border border-slate-200 shadow-2xs divide-y divide-slate-200">
+                  <thead className="bg-slate-100 font-bold text-slate-700 text-[11px]">
+                    <tr>
+                      <th className="py-2 px-2.5 border-r border-slate-200">ரசீது எண் (Bill No)</th>
+                      <th className="py-2 px-2 border-r border-slate-200">தேதி / நேரம் (Date/Time)</th>
+                      <th className="py-2 px-2.5 border-r border-slate-200">வாடிக்கையாளர் (Customer)</th>
+                      <th className="py-2 px-2 border-r border-slate-200 text-center">முறை (Mode)</th>
+                      <th className="py-2 px-2.5 border-r border-slate-200 text-right">மொத்தம் (Total)</th>
+                      <th className="py-2 px-2 text-center">செயல் (Action)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {modalInvoices.map((inv) => (
+                      <tr 
+                        key={inv.id} 
+                        className="hover:bg-blue-50/70 transition-colors cursor-pointer group"
+                        onDoubleClick={() => loadSpecificInvoice(inv.id)}
+                      >
+                        <td className="py-2 px-2.5 font-mono font-bold text-blue-800 border-r border-slate-100">
+                          {inv.invoice_no}
+                        </td>
+                        <td className="py-2 px-2 font-mono text-slate-600 border-r border-slate-100 whitespace-nowrap">
+                          {inv.date} {inv.time}
+                        </td>
+                        <td className="py-2 px-2.5 text-slate-900 border-r border-slate-100 font-tamil">
+                          <div className="font-bold">{inv.customer_name}</div>
+                          {inv.customer_phone && (
+                            <div className="text-[10px] text-slate-500 font-mono">{inv.customer_phone}</div>
+                          )}
+                        </td>
+                        <td className="py-2 px-2 text-center border-r border-slate-100">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase font-mono ${
+                            inv.payment_mode === 'cash' ? 'bg-emerald-100 text-emerald-800' :
+                            inv.payment_mode === 'upi' ? 'bg-indigo-100 text-indigo-800' :
+                            inv.payment_mode === 'credit' ? 'bg-amber-100 text-amber-800' :
+                            'bg-slate-100 text-slate-800'
+                          }`}>
+                            {inv.payment_mode}
+                          </span>
+                        </td>
+                        <td className="py-2 px-2.5 text-right font-mono font-bold text-slate-900 border-r border-slate-100">
+                          ₹{Number(inv.grand_total).toFixed(2)}
+                        </td>
+                        <td className="py-2 px-2 text-center">
+                          <button
+                            onClick={() => loadSpecificInvoice(inv.id)}
+                            className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[11px] shadow-2xs font-tamil flex items-center justify-center space-x-1 mx-auto"
+                          >
+                            <span>பார்வை [View]</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-slate-100 px-4 py-2 border-t border-slate-300 flex items-center justify-between text-xs text-slate-600">
+              <span className="font-mono text-[11px]">
+                Enter: முதல் ரசீதை திறக்க | Double-Click: ரசீதை தேர்வு செய்ய | Esc: மூட
+              </span>
+              <button
+                onClick={() => setShowSearchModal(false)}
+                className="px-3 py-1 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded font-tamil"
+              >
+                ✕ மூடு [Esc]
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -196,10 +196,14 @@ router.post('/', (req, res) => {
 // List invoices with pagination and filters
 router.get('/', (req, res) => {
   try {
-    const { start_date, end_date, search, payment_mode, page = 1, limit = 50 } = req.query;
+    const { start_date, end_date, date, invoice_no, customer_name, search, payment_mode, page = 1, limit = 50 } = req.query;
     let query = 'SELECT * FROM invoices WHERE 1=1';
     const params = [];
 
+    if (date) {
+      query += ' AND date = ?';
+      params.push(date);
+    }
     if (start_date) {
       query += ' AND date >= ?';
       params.push(start_date);
@@ -207,6 +211,15 @@ router.get('/', (req, res) => {
     if (end_date) {
       query += ' AND date <= ?';
       params.push(end_date);
+    }
+    if (invoice_no) {
+      query += ' AND invoice_no LIKE ?';
+      params.push(`%${invoice_no}%`);
+    }
+    if (customer_name) {
+      query += ' AND (customer_name LIKE ? OR customer_phone LIKE ?)';
+      const cn = `%${customer_name}%`;
+      params.push(cn, cn);
     }
     if (search) {
       query += ' AND (invoice_no LIKE ? OR customer_name LIKE ? OR customer_phone LIKE ?)';
