@@ -36,25 +36,22 @@ export default function Navbar({
         
         {/* Left: Shop Identity */}
         <div 
-          className="flex items-center space-x-2.5 cursor-pointer flex-shrink-0"
+          className="flex items-center space-x-2 cursor-pointer flex-shrink-0"
           onClick={() => setActiveTab('pos')}
           title={shopName}
         >
-          <div className="bg-emerald-600 text-white font-bold text-xs px-2 py-1 rounded font-mono shadow-xs">
+          <div className="bg-emerald-600 text-white font-bold text-xs px-2 py-0.5 rounded font-mono shadow-xs">
             POS
           </div>
           <div className="flex flex-col">
-            <h1 className="text-sm sm:text-base font-bold text-white font-tamil tracking-wide leading-tight">
+            <h1 className="text-sm font-bold text-white font-tamil tracking-wide leading-tight whitespace-nowrap">
               {shopName}
             </h1>
-            <div className="text-[11px] text-slate-300 font-mono flex items-center space-x-2 leading-tight">
-              {storeSettings.gstin && (
-                <span>GSTIN: <strong className="text-white">{storeSettings.gstin}</strong></span>
-              )}
+            <div className="text-[10px] text-slate-300 font-mono flex items-center space-x-1.5 leading-tight whitespace-nowrap">
               {storeSettings.phone && (
-                <span className="text-slate-300">Ph: <strong>{storeSettings.phone}</strong></span>
+                <span>Ph: <strong className="text-white">{storeSettings.phone}</strong></span>
               )}
-              <span className="text-emerald-400 font-semibold">[State: 33 TN]</span>
+              <span className="text-emerald-400 font-semibold">[33 TN]</span>
             </div>
           </div>
         </div>
@@ -68,7 +65,7 @@ export default function Navbar({
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded border transition-colors whitespace-nowrap ${
+                className={`px-2.5 py-1 text-xs font-semibold rounded border transition-colors whitespace-nowrap ${
                   isActive
                     ? 'bg-emerald-700 text-white border-emerald-500 font-bold'
                     : 'bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700 hover:text-white'
@@ -76,7 +73,7 @@ export default function Navbar({
               >
                 <span>{label}</span>
                 {item.badge && (
-                  <span className="ml-1.5 bg-rose-600 text-white text-[10px] px-1.5 py-0.2 rounded font-bold">
+                  <span className="ml-1 bg-rose-600 text-white text-[10px] px-1.5 py-0.2 rounded font-bold">
                     {item.badge}
                   </span>
                 )}
@@ -86,9 +83,9 @@ export default function Navbar({
         </nav>
 
         {/* Right: User Role Badge, Logout & Plain Language Toggle */}
-        <div className="flex items-center space-x-2 flex-shrink-0">
+        <div className="flex items-center space-x-1.5 flex-shrink-0">
           {currentUser && (
-            <div className="flex items-center space-x-1.5 bg-slate-800 px-2 py-1 rounded border border-slate-700 text-xs">
+            <div className="flex items-center space-x-1 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 text-xs">
               <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold uppercase ${
                 currentUser.role === 'admin' 
                   ? 'bg-rose-900 text-rose-200 border border-rose-700' 
@@ -96,14 +93,15 @@ export default function Navbar({
               }`}>
                 {currentUser.role}
               </span>
-              <span className="font-semibold text-slate-200 hidden sm:inline">{currentUser.name || currentUser.username}</span>
+              <span className="font-semibold text-slate-200 hidden xl:inline">{currentUser.name || currentUser.username}</span>
               {onLogout && (
                 <button
                   onClick={onLogout}
                   title="Logout / வெளியேறு"
-                  className="ml-1 text-slate-400 hover:text-rose-400 font-bold px-1 py-0.5 rounded transition-colors text-[11px]"
+                  className="ml-1 bg-rose-950/70 hover:bg-rose-800 text-rose-200 hover:text-white border border-rose-700 font-bold px-1.5 py-0.5 rounded transition-colors text-[11px] flex items-center space-x-0.5"
                 >
-                  🚪 Logout
+                  <span>🚪</span>
+                  <span>{lang === 'ta' ? 'வெளியேறு' : 'Logout'}</span>
                 </button>
               )}
             </div>
@@ -111,7 +109,7 @@ export default function Navbar({
 
           <button
             onClick={() => setLang(lang === 'ta' ? 'en' : 'ta')}
-            className="px-2.5 py-1 text-xs font-bold rounded bg-slate-800 border border-slate-600 text-emerald-400 hover:bg-slate-700 font-mono"
+            className="px-2 py-0.5 text-xs font-bold rounded bg-slate-800 border border-slate-600 text-emerald-400 hover:bg-slate-700 font-mono whitespace-nowrap"
             title="Switch Language / மொழியை மாற்ற"
           >
             {lang === 'ta' ? 'English' : 'தமிழ்'}
