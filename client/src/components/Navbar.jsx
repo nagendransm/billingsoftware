@@ -36,22 +36,23 @@ export default function Navbar({
         
         {/* Left: Shop Identity */}
         <div 
-          className="flex items-center space-x-2.5 cursor-pointer flex-shrink min-w-0"
+          className="flex items-center space-x-2.5 cursor-pointer flex-shrink-0"
           onClick={() => setActiveTab('pos')}
           title={shopName}
         >
-          <div className="bg-emerald-600 text-white font-bold text-xs px-2 py-1 rounded font-mono">
+          <div className="bg-emerald-600 text-white font-bold text-xs px-2 py-1 rounded font-mono shadow-xs">
             POS
           </div>
-          <div className="min-w-0">
-            <h1 className="text-sm sm:text-base font-bold text-white font-tamil truncate tracking-wide">
+          <div className="flex flex-col">
+            <h1 className="text-sm sm:text-base font-bold text-white font-tamil tracking-wide leading-tight">
               {shopName}
             </h1>
-            <div className="text-[11px] text-slate-300 font-mono flex items-center space-x-2">
-              {storeSettings.gstin ? (
-                <span>GSTIN: <strong>{storeSettings.gstin}</strong></span>
-              ) : (
-                <span className="text-amber-400 font-tamil text-[10px]">{lang === 'ta' ? '[அமைப்புகளில் கடை பெயர் அமைக்கலாம்]' : '[Set Shop Details in Settings]'}</span>
+            <div className="text-[11px] text-slate-300 font-mono flex items-center space-x-2 leading-tight">
+              {storeSettings.gstin && (
+                <span>GSTIN: <strong className="text-white">{storeSettings.gstin}</strong></span>
+              )}
+              {storeSettings.phone && (
+                <span className="text-slate-300">Ph: <strong>{storeSettings.phone}</strong></span>
               )}
               <span className="text-emerald-400 font-semibold">[State: 33 TN]</span>
             </div>
