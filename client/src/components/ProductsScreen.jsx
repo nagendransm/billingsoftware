@@ -409,7 +409,7 @@ export default function ProductsScreen({
               <tr key={p.id} className="hover:bg-slate-50 border-b border-slate-200">
                 <td className="py-2 px-2 text-center font-mono text-slate-500 border-r border-slate-200">{idx + 1}</td>
                 <td className="py-2 px-3 font-mono text-slate-700 border-r border-slate-200">{p.barcode}</td>
-                <td className="py-2 px-3 font-bold text-slate-900 font-tamil border-r border-slate-200">{p.name_ta}</td>
+                <td className="py-2 px-3 font-bold text-slate-900 font-product border-r border-slate-200">{p.name_ta}</td>
                 <td className="py-2 px-3 text-slate-700 border-r border-slate-200">{p.name_en}</td>
                 <td className="py-2 px-2 text-center font-mono border-r border-slate-200">{p.hsn_code}</td>
                 <td className="py-2 px-2 text-center font-mono font-bold border-r border-slate-200">{p.gst_rate}%</td>
@@ -460,7 +460,7 @@ export default function ProductsScreen({
                     required
                     value={formData.name_ta}
                     onChange={(e) => setFormData({ ...formData, name_ta: e.target.value })}
-                    className="w-full p-1.5 border border-slate-400 rounded font-tamil"
+                    className="w-full p-1.5 border border-slate-400 rounded font-product"
                   />
                 </div>
                 <div>
@@ -701,7 +701,7 @@ export default function ProductsScreen({
                         {importPreview.map((item, idx) => (
                           <tr key={idx} className="hover:bg-slate-50">
                             <td className="p-1.5 text-center font-mono border-r border-slate-200 text-slate-500">{idx + 1}</td>
-                            <td className="p-1.5 font-bold font-tamil border-r border-slate-200">{item.name_ta}</td>
+                            <td className="p-1.5 font-bold font-product border-r border-slate-200">{item.name_ta}</td>
                             <td className="p-1.5 border-r border-slate-200 text-slate-700">{item.name_en}</td>
                             <td className="p-1.5 text-right font-mono font-bold border-r border-slate-200">₹{item.selling_price}</td>
                             <td className="p-1.5 text-center font-mono border-r border-slate-200">{item.hsn_code}</td>

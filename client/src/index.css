@@ -1,32 +1,22 @@
 @import "tailwindcss";
-
-/* Optional legacy TSC-Avarangal font for legacy TSC encoded text */
-@font-face {
-  font-family: 'TSC-Avarangal';
-  src: local('TSC-Avarangal'),
-       local('TSCAvarangal'),
-       local('tsc-avarangal'),
-       url('/fonts/tsc-avarangal.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-.font-tsc {
-  font-family: 'TSC-Avarangal', sans-serif !important;
-}
+@import "./fonts.css";
 
 @layer base {
   body {
-    font-family: 'Segoe UI', 'Nirmala UI', 'Latha', -apple-system, BlinkMacSystemFont, 'Noto Sans Tamil', 'Mukta Malar', Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Nirmala UI', Roboto, Helvetica, Arial, sans-serif;
     color: #1f2937;
     background-color: #f3f4f6;
   }
 }
 
-/* Tamil font optimization - High readability Unicode standard */
+/* Software UI text and buttons (English / standard fonts) */
 .font-tamil {
   font-family: 'Nirmala UI', 'Latha', 'Noto Sans Tamil', 'Mukta Malar', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* PRODUCT NAMES ONLY - TSC_Avarangal font support */
+.font-product {
+  font-family: 'TSC_Avarangal', 'TSC-Avarangal', 'TSCAvarangal', 'tsc-avarangal', 'Nirmala UI', 'Latha', 'Noto Sans Tamil', 'Mukta Malar', 'Segoe UI', sans-serif !important;
 }
 
 /* Custom scrollbars */

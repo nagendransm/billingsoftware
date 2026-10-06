@@ -933,7 +933,7 @@ export default function PosScreen({
                           ►
                         </span>
                         <div>
-                          <strong className="font-tamil text-slate-900">{item.name_ta}</strong>
+                          <strong className="font-product text-slate-900">{item.name_ta}</strong>
                           <span className="text-slate-600 ml-1.5 font-sans font-normal">({item.name_en})</span>
                           <span className="ml-2 text-[10px] font-mono text-slate-500">[{item.barcode}]</span>
                         </div>
@@ -1053,7 +1053,7 @@ export default function PosScreen({
                       {idx + 1}
                     </td>
                     <td className="py-1 px-2.5 border-r border-slate-200">
-                      <div className="font-bold text-slate-900 font-tamil text-xs leading-tight">
+                      <div className="font-bold text-slate-900 font-product text-xs leading-tight">
                         {item.name_ta}
                       </div>
                       <div className="text-[10px] text-slate-600">
@@ -1103,7 +1103,7 @@ export default function PosScreen({
                       {idx + 1}
                     </td>
                     <td className="py-1 px-2.5 border-r border-slate-200">
-                      <div className="font-bold text-slate-900 font-tamil text-xs leading-tight">
+                      <div className="font-bold text-slate-900 font-product text-xs leading-tight">
                         {item.name_ta}
                       </div>
                       <div className="text-[10px] text-slate-600">

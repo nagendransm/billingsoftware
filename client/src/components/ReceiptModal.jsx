@@ -130,7 +130,7 @@ export default function ReceiptModal({
                   {invoice.items && invoice.items.map((it, idx) => (
                     <tr key={idx} className="align-top">
                       <td className="py-0.5 pr-1">
-                        <div className="font-bold font-tamil">{it.name_ta}</div>
+                        <div className="font-bold font-product">{it.name_ta}</div>
                         <div className="text-[8.5px] text-gray-600 font-mono">HSN:{it.hsn_code} GST:{it.gst_rate}%</div>
                       </td>
                       <td className="py-0.5 text-center font-mono">{it.quantity} {it.unit}</td>
@@ -271,7 +271,7 @@ export default function ReceiptModal({
                     <tr key={idx} className="border-b border-slate-300">
                       <td className="border-r border-black p-1 text-center">{idx + 1}</td>
                       <td className="border-r border-black p-1">
-                        <div className="font-bold font-tamil">{it.name_ta}</div>
+                        <div className="font-bold font-product">{it.name_ta}</div>
                         <div className="text-[10px] text-gray-600">{it.name_en}</div>
                       </td>
                       <td className="border-r border-black p-1 text-center font-mono">{it.hsn_code}</td>

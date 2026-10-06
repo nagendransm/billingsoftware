@@ -257,7 +257,7 @@ export default function ReportsScreen({
                     <tr key={idx} className="hover:bg-slate-50 border-b border-slate-200">
                       <td className="py-2 px-2.5 font-mono font-bold border-r border-slate-200">{row.hsn_code}</td>
                       <td className="py-2 px-2.5 border-r border-slate-200">
-                        <div className="font-bold font-tamil">{row.description_ta}</div>
+                        <div className="font-bold font-product">{row.description_ta}</div>
                         <div className="text-[10px] text-slate-500">{row.description_en}</div>
                       </td>
                       <td className="py-2 px-2 text-center font-mono border-r border-slate-200">{row.uqc}</td>
