@@ -37,6 +37,12 @@
 
 /* Print Styles for POS Thermal (80mm / 58mm) & A4 Invoices */
 @media print {
+  /* Dynamic page size for thermal printers: auto height so paper cuts immediately when text finishes */
+  @page {
+    margin: 0 !important;
+    size: auto;
+  }
+
   /* Hide all app chrome, full screen backgrounds and navigation */
   html, body {
     background: #ffffff !important;
@@ -44,6 +50,8 @@
     padding: 0 !important;
     width: 100% !important;
     height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
     overflow: visible !important;
   }
   
@@ -62,6 +70,7 @@
     display: block !important;
     width: 100% !important;
     height: auto !important;
+    min-height: 0 !important;
     overflow: visible !important;
   }
 
@@ -74,6 +83,7 @@
     max-height: none !important;
     width: 100% !important;
     height: auto !important;
+    min-height: 0 !important;
     overflow: visible !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -84,6 +94,8 @@
     background: transparent !important;
     padding: 0 !important;
     margin: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
     overflow: visible !important;
     display: block !important;
   }
@@ -91,10 +103,10 @@
   /* Thermal Receipt Container (80mm standard width: ~300px) */
   .thermal-receipt-container {
     display: block !important;
-    width: 78mm !important;
-    max-width: 78mm !important;
-    margin: 0 auto !important;
-    padding: 4mm 2mm !important;
+    width: 76mm !important;
+    max-width: 76mm !important;
+    margin: 0 !important;
+    padding: 2mm 1mm 2mm 1mm !important;
     color: #000000 !important;
     background: #ffffff !important;
     border: none !important;
@@ -103,14 +115,18 @@
     line-height: 1.25 !important;
     page-break-after: avoid !important;
     page-break-inside: avoid !important;
+    break-after: avoid !important;
+    break-inside: avoid !important;
+    height: auto !important;
+    min-height: 0 !important;
   }
 
   /* 58mm thermal width */
   .thermal-receipt-container.width-58mm {
-    width: 54mm !important;
-    max-width: 54mm !important;
+    width: 52mm !important;
+    max-width: 52mm !important;
     font-size: 9.5px !important;
-    padding: 2mm 1mm !important;
+    padding: 2mm 1mm 2mm 1mm !important;
   }
 
   /* A4 Invoice Container */
