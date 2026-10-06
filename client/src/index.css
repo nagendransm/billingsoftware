@@ -14,9 +14,9 @@
   font-family: 'Nirmala UI', 'Latha', 'Noto Sans Tamil', 'Mukta Malar', 'Segoe UI', system-ui, sans-serif;
 }
 
-/* PRODUCT NAMES ONLY - TSC_Avarangal font support */
+/* PRODUCT NAMES ONLY - Clean, crisp Tamil font with full OpenType shaping */
 .font-product {
-  font-family: 'TSC_Avarangal', 'TSC-Avarangal', 'TSCAvarangal', 'tsc-avarangal', 'Nirmala UI', 'Latha', 'Noto Sans Tamil', 'Mukta Malar', 'Segoe UI', sans-serif !important;
+  font-family: 'Nirmala UI', 'Latha', 'Noto Sans Tamil', 'Mukta Malar', 'Catamaran', 'Segoe UI', system-ui, sans-serif !important;
 }
 
 /* Custom scrollbars */
