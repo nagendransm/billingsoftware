@@ -201,8 +201,18 @@ router.get('/', (req, res) => {
     const params = [];
 
     if (date) {
+      let normalizedDate = String(date).trim();
+      // Support DD/MM/YYYY, DD-MM-YYYY, DD/MM/YY
+      const dmy = normalizedDate.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+      if (dmy) {
+        const day = dmy[1].padStart(2, '0');
+        const month = dmy[2].padStart(2, '0');
+        let year = dmy[3];
+        if (year.length === 2) year = '20' + year;
+        normalizedDate = `${year}-${month}-${day}`;
+      }
       query += ' AND date = ?';
-      params.push(date);
+      params.push(normalizedDate);
     }
     if (start_date) {
       query += ' AND date >= ?';

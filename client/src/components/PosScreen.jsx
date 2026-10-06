@@ -44,11 +44,20 @@ export default function PosScreen({
 
   // Alt+S Past Bills Search Modal State
   const [showSearchModal, setShowSearchModal] = useState(false);
-  const [searchDate, setSearchDate] = useState('');
+  const [searchDate, setSearchDate] = useState(() => {
+    const d = new Date();
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  });
   const [searchBillNo, setSearchBillNo] = useState('');
   const [searchCustomer, setSearchCustomer] = useState('');
+  const [showModalCustDropdown, setShowModalCustDropdown] = useState(false);
+  const [modalCustHighlightIndex, setModalCustHighlightIndex] = useState(0);
   const [modalInvoices, setModalInvoices] = useState([]);
   const [loadingModalInvoices, setLoadingModalInvoices] = useState(false);
+  const [selectedInvoiceIndex, setSelectedInvoiceIndex] = useState(0);
 
   // Refs
   const searchContainerRef = useRef(null);
@@ -56,7 +65,10 @@ export default function PosScreen({
   const dropdownListRef = useRef(null);
   const qtyInputRef = useRef(null);
   const customerDropdownRef = useRef(null);
+  const searchModalDateInputRef = useRef(null);
   const searchModalBillNoInputRef = useRef(null);
+  const searchModalCustInputRef = useRef(null);
+  const modalCustDropdownRef = useRef(null);
 
   // Auto-focus search on load
   useEffect(() => {
@@ -211,13 +223,22 @@ export default function PosScreen({
 
   // Open Alt+S search modal
   const handleOpenSearchModal = () => {
+    // Ensure current date is set in DD/MM/YYYY
+    const d = new Date();
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const todayStr = `${day}/${month}/${year}`;
+    setSearchDate(todayStr);
+
     setShowSearchModal(true);
-    // Initial fetch using current filters (or blank)
-    fetchFilteredInvoices(searchDate, searchBillNo, searchCustomer);
+    setSelectedInvoiceIndex(0);
+    setShowModalCustDropdown(false);
+    fetchFilteredInvoices(todayStr, searchBillNo, searchCustomer);
     setTimeout(() => {
-      if (searchModalBillNoInputRef.current) {
-        searchModalBillNoInputRef.current.focus();
-        searchModalBillNoInputRef.current.select();
+      if (searchModalDateInputRef.current) {
+        searchModalDateInputRef.current.focus();
+        searchModalDateInputRef.current.select();
       }
     }, 100);
   };
@@ -1487,23 +1508,37 @@ export default function PosScreen({
               </button>
             </div>
 
-            {/* 3 Search Filter Input Boxes (Date, Bill No, Customer Name) */}
+            {/* 3 Search Filter Input Boxes (Typeable Date, Bill No, Autocomplete Customer) */}
             <div className="bg-slate-100 p-3 border-b border-slate-300 grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
               
-              {/* 1. Changeable Date Box */}
+              {/* 1. Typeable Date Box (no calendar dropdown, plain text DD/MM/YYYY) */}
               <div>
                 <label className="block font-bold text-slate-700 mb-1 font-tamil">
-                  {lang === 'ta' ? '📅 தேதி (Date):' : '📅 Date:'}
+                  {lang === 'ta' ? '📅 தேதி [நாள்/மாதம்/வருடம்]:' : '📅 Date [DD/MM/YYYY]:'}
                 </label>
                 <input
-                  type="date"
+                  ref={searchModalDateInputRef}
+                  type="text"
                   value={searchDate}
                   onChange={(e) => {
                     const val = e.target.value;
                     setSearchDate(val);
                     fetchFilteredInvoices(val, searchBillNo, searchCustomer);
                   }}
-                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded bg-white text-slate-900 font-mono font-semibold focus:border-blue-600 focus:outline-none shadow-2xs"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (searchModalBillNoInputRef.current) {
+                        searchModalBillNoInputRef.current.focus();
+                        searchModalBillNoInputRef.current.select();
+                      }
+                    } else if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setSelectedInvoiceIndex(0);
+                    }
+                  }}
+                  placeholder="DD/MM/YYYY"
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded bg-white text-slate-900 font-mono font-bold focus:border-blue-600 focus:outline-none shadow-2xs"
                 />
               </div>
 
@@ -1522,8 +1557,17 @@ export default function PosScreen({
                     fetchFilteredInvoices(searchDate, val, searchCustomer);
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && modalInvoices.length > 0) {
-                      loadSpecificInvoice(modalInvoices[0].id);
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (modalInvoices.length > 0) {
+                        loadSpecificInvoice(modalInvoices[selectedInvoiceIndex]?.id || modalInvoices[0].id);
+                      }
+                    } else if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setSelectedInvoiceIndex(prev => Math.min(modalInvoices.length - 1, prev + 1));
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      setSelectedInvoiceIndex(prev => Math.max(0, prev - 1));
                     }
                   }}
                   placeholder={lang === 'ta' ? 'எ.கா: BILL/1010 அல்லது 1010' : 'e.g. BILL/1010 or 1010'}
@@ -1531,27 +1575,112 @@ export default function PosScreen({
                 />
               </div>
 
-              {/* 3. Customer Name / Phone Search Box */}
-              <div>
+              {/* 3. Customer Name Search Box with Autocomplete Dropdown & Keyboard Selection */}
+              <div className="relative">
                 <label className="block font-bold text-slate-700 mb-1 font-tamil">
-                  {lang === 'ta' ? '👤 வாடிக்கையாளர் பெயர் (Customer):' : '👤 Customer Name / Ph:'}
+                  {lang === 'ta' ? '👤 வாடிக்கையாளர் பெயர்:' : '👤 Customer Name / Ph:'}
                 </label>
                 <input
+                  ref={searchModalCustInputRef}
                   type="text"
                   value={searchCustomer}
                   onChange={(e) => {
                     const val = e.target.value;
                     setSearchCustomer(val);
+                    setShowModalCustDropdown(true);
+                    setModalCustHighlightIndex(0);
                     fetchFilteredInvoices(searchDate, searchBillNo, val);
                   }}
+                  onFocus={() => {
+                    setShowModalCustDropdown(true);
+                  }}
+                  onBlur={() => {
+                    setTimeout(() => setShowModalCustDropdown(false), 200);
+                  }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && modalInvoices.length > 0) {
-                      loadSpecificInvoice(modalInvoices[0].id);
+                    // Filtered customers list
+                    const q = searchCustomer.toLowerCase().trim();
+                    const filteredCust = q
+                      ? customers.filter(c =>
+                          (c.name && c.name.toLowerCase().includes(q)) ||
+                          (c.phone && c.phone.includes(q))
+                        )
+                      : customers;
+
+                    if (e.key === 'Backspace' && searchCustomer === '') {
+                      // Pressing backspace when empty shows all customers
+                      setShowModalCustDropdown(true);
+                      setModalCustHighlightIndex(0);
+                    } else if (e.key === 'ArrowDown') {
+                      if (showModalCustDropdown && filteredCust.length > 0) {
+                        e.preventDefault();
+                        setModalCustHighlightIndex(prev => Math.min(filteredCust.length - 1, prev + 1));
+                      } else if (modalInvoices.length > 0) {
+                        e.preventDefault();
+                        setSelectedInvoiceIndex(prev => Math.min(modalInvoices.length - 1, prev + 1));
+                      }
+                    } else if (e.key === 'ArrowUp') {
+                      if (showModalCustDropdown && filteredCust.length > 0) {
+                        e.preventDefault();
+                        setModalCustHighlightIndex(prev => Math.max(0, prev - 1));
+                      } else if (modalInvoices.length > 0) {
+                        e.preventDefault();
+                        setSelectedInvoiceIndex(prev => Math.max(0, prev - 1));
+                      }
+                    } else if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (showModalCustDropdown && filteredCust.length > 0) {
+                        const chosen = filteredCust[modalCustHighlightIndex] || filteredCust[0];
+                        if (chosen) {
+                          setSearchCustomer(chosen.name);
+                          setShowModalCustDropdown(false);
+                          fetchFilteredInvoices(searchDate, searchBillNo, chosen.name);
+                        }
+                      } else if (modalInvoices.length > 0) {
+                        loadSpecificInvoice(modalInvoices[selectedInvoiceIndex]?.id || modalInvoices[0].id);
+                      }
                     }
                   }}
-                  placeholder={lang === 'ta' ? 'பெயர் அல்லது தொலைபேசி எண்' : 'Name or phone number'}
+                  placeholder={lang === 'ta' ? 'பெயர் அல்லது எண் தட்டச்சு செய்க' : 'Type name or phone'}
                   className="w-full px-2.5 py-1.5 border border-slate-300 rounded bg-white text-slate-900 font-semibold focus:border-blue-600 focus:outline-none shadow-2xs"
                 />
+
+                {/* Customer Autocomplete Dropdown List */}
+                {showModalCustDropdown && (() => {
+                  const q = searchCustomer.toLowerCase().trim();
+                  const filteredCust = q
+                    ? customers.filter(c =>
+                        (c.name && c.name.toLowerCase().includes(q)) ||
+                        (c.phone && c.phone.includes(q))
+                      )
+                    : customers;
+
+                  return filteredCust.length > 0 ? (
+                    <ul 
+                      ref={modalCustDropdownRef}
+                      className="absolute z-50 top-full left-0 right-0 bg-white border border-slate-300 rounded-b shadow-xl mt-0.5 max-h-48 overflow-y-auto text-xs"
+                    >
+                      {filteredCust.map((c, idx) => (
+                        <li
+                          key={c.id}
+                          onMouseDown={() => {
+                            setSearchCustomer(c.name);
+                            setShowModalCustDropdown(false);
+                            fetchFilteredInvoices(searchDate, searchBillNo, c.name);
+                          }}
+                          className={`px-2.5 py-1.5 cursor-pointer flex items-center justify-between border-b border-slate-100 last:border-0 ${
+                            idx === modalCustHighlightIndex ? 'bg-blue-600 text-white' : 'hover:bg-blue-50 text-slate-900'
+                          }`}
+                        >
+                          <span className="font-semibold">{c.name}</span>
+                          <span className={`text-[10px] font-mono ${idx === modalCustHighlightIndex ? 'text-blue-100' : 'text-slate-500'}`}>
+                            {c.phone || ''}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null;
+                })()}
               </div>
 
             </div>
@@ -1560,27 +1689,32 @@ export default function PosScreen({
             <div className="px-3 py-1 bg-slate-200/80 border-b border-slate-300 flex items-center justify-between text-[11px] text-slate-600 font-mono">
               <div>
                 <span>{lang === 'ta' ? 'கண்டுபிடிக்கப்பட்ட ரசீதுகள்:' : 'Invoices found:'} </span>
-                <strong className="text-slate-900">{modalInvoices.length}</strong>
+                <strong className="text-slate-900 font-bold">{modalInvoices.length}</strong>
               </div>
-              {(searchDate || searchBillNo || searchCustomer) && (
-                <button
-                  onClick={() => {
-                    setSearchDate('');
-                    setSearchBillNo('');
-                    setSearchCustomer('');
-                    fetchFilteredInvoices('', '', '');
-                  }}
-                  className="text-blue-700 hover:text-blue-900 hover:underline font-bold"
-                >
-                  ✕ {lang === 'ta' ? 'அனைத்து வடிகட்டிகளையும் நீக்கு (Clear Filters)' : 'Clear Filters'}
-                </button>
-              )}
+              <div className="flex items-center space-x-3">
+                <span className="text-[10px] text-slate-500">
+                  ↑ / ↓: ரசீதை தேர்வு செய்ய | Enter: பில்லை திறக்க | Esc: வெளியேற
+                </span>
+                {(searchDate || searchBillNo || searchCustomer) && (
+                  <button
+                    onClick={() => {
+                      setSearchDate('');
+                      setSearchBillNo('');
+                      setSearchCustomer('');
+                      fetchFilteredInvoices('', '', '');
+                    }}
+                    className="text-blue-700 hover:text-blue-900 hover:underline font-bold"
+                  >
+                    ✕ {lang === 'ta' ? 'வடிகட்டிகளை நீக்கு' : 'Clear'}
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Invoices Results Table */}
-            <div className="flex-1 overflow-y-auto p-2 bg-slate-50 min-h-[220px]">
+            {/* Invoices Results Table with Keyboard Arrow Selection */}
+            <div className="flex-1 overflow-y-auto p-2 bg-slate-50 min-h-[240px]">
               {loadingModalInvoices ? (
-                <div className="text-center py-10 text-slate-500 font-tamil">
+                <div className="text-center py-10 text-slate-500 font-tamil font-bold">
                   தேடப்படுகிறது... (Searching...)
                 </div>
               ) : modalInvoices.length === 0 ? (
@@ -1600,47 +1734,54 @@ export default function PosScreen({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium">
-                    {modalInvoices.map((inv) => (
-                      <tr 
-                        key={inv.id} 
-                        className="hover:bg-blue-50/70 transition-colors cursor-pointer group"
-                        onDoubleClick={() => loadSpecificInvoice(inv.id)}
-                      >
-                        <td className="py-2 px-2.5 font-mono font-bold text-blue-800 border-r border-slate-100">
-                          {inv.invoice_no}
-                        </td>
-                        <td className="py-2 px-2 font-mono text-slate-600 border-r border-slate-100 whitespace-nowrap">
-                          {inv.date} {inv.time}
-                        </td>
-                        <td className="py-2 px-2.5 text-slate-900 border-r border-slate-100 font-tamil">
-                          <div className="font-bold">{inv.customer_name}</div>
-                          {inv.customer_phone && (
-                            <div className="text-[10px] text-slate-500 font-mono">{inv.customer_phone}</div>
-                          )}
-                        </td>
-                        <td className="py-2 px-2 text-center border-r border-slate-100">
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase font-mono ${
-                            inv.payment_mode === 'cash' ? 'bg-emerald-100 text-emerald-800' :
-                            inv.payment_mode === 'upi' ? 'bg-indigo-100 text-indigo-800' :
-                            inv.payment_mode === 'credit' ? 'bg-amber-100 text-amber-800' :
-                            'bg-slate-100 text-slate-800'
-                          }`}>
-                            {inv.payment_mode}
-                          </span>
-                        </td>
-                        <td className="py-2 px-2.5 text-right font-mono font-bold text-slate-900 border-r border-slate-100">
-                          ₹{Number(inv.grand_total).toFixed(2)}
-                        </td>
-                        <td className="py-2 px-2 text-center">
-                          <button
-                            onClick={() => loadSpecificInvoice(inv.id)}
-                            className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[11px] shadow-2xs font-tamil flex items-center justify-center space-x-1 mx-auto"
-                          >
-                            <span>பார்வை [View]</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {modalInvoices.map((inv, idx) => {
+                      const isSelected = idx === selectedInvoiceIndex;
+                      return (
+                        <tr 
+                          key={inv.id} 
+                          className={`transition-colors cursor-pointer group ${
+                            isSelected ? 'bg-blue-100/90 ring-1 ring-blue-500' : 'hover:bg-blue-50/70'
+                          }`}
+                          onClick={() => setSelectedInvoiceIndex(idx)}
+                          onDoubleClick={() => loadSpecificInvoice(inv.id)}
+                        >
+                          <td className="py-2 px-2.5 font-mono font-bold text-blue-900 border-r border-slate-100">
+                            {isSelected && <span className="mr-1 text-blue-600 font-bold">▶</span>}
+                            {inv.invoice_no}
+                          </td>
+                          <td className="py-2 px-2 font-mono text-slate-600 border-r border-slate-100 whitespace-nowrap">
+                            {inv.date} {inv.time}
+                          </td>
+                          <td className="py-2 px-2.5 text-slate-900 border-r border-slate-100 font-tamil">
+                            <div className="font-bold">{inv.customer_name}</div>
+                            {inv.customer_phone && (
+                              <div className="text-[10px] text-slate-500 font-mono">{inv.customer_phone}</div>
+                            )}
+                          </td>
+                          <td className="py-2 px-2 text-center border-r border-slate-100">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase font-mono ${
+                              inv.payment_mode === 'cash' ? 'bg-emerald-100 text-emerald-800' :
+                              inv.payment_mode === 'upi' ? 'bg-indigo-100 text-indigo-800' :
+                              inv.payment_mode === 'credit' ? 'bg-amber-100 text-amber-800' :
+                              'bg-slate-100 text-slate-800'
+                            }`}>
+                              {inv.payment_mode}
+                            </span>
+                          </td>
+                          <td className="py-2 px-2.5 text-right font-mono font-bold text-slate-900 border-r border-slate-100">
+                            ₹{Number(inv.grand_total).toFixed(2)}
+                          </td>
+                          <td className="py-2 px-2 text-center">
+                            <button
+                              onClick={() => loadSpecificInvoice(inv.id)}
+                              className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded font-bold text-[11px] shadow-2xs font-tamil flex items-center justify-center space-x-1 mx-auto"
+                            >
+                              <span>பார்வை [View]</span>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               )}
@@ -1649,7 +1790,7 @@ export default function PosScreen({
             {/* Modal Footer */}
             <div className="bg-slate-100 px-4 py-2 border-t border-slate-300 flex items-center justify-between text-xs text-slate-600">
               <span className="font-mono text-[11px]">
-                Enter: முதல் ரசீதை திறக்க | Double-Click: ரசீதை தேர்வு செய்ய | Esc: மூட
+                ↑ / ↓: வரிசை தேர்வு | Enter: ரசீதை திறக்க | Esc: மூட
               </span>
               <button
                 onClick={() => setShowSearchModal(false)}
