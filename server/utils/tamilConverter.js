@@ -96,6 +96,43 @@ function decodeMojibake(str) {
   return str;
 }
 
+const GRANTHA_GLYPH_MAP = {
+  '\u0192': 'ஜ', // ƒ -> Ja
+  '\u201E': 'ஷ', // „ -> Sha
+  '\u2026': 'ஸ', // … -> Sa
+  '\u2020': 'ஹ', // † -> Ha
+  '\u2021': 'க்ஷ', // ‡ -> Ksha
+  '\u02C6': 'ஜ்', // ˆ -> j
+  '\u2030': 'ஷ்', // ‰ -> sh
+  '\u0160': 'ஸ்', // Š -> s
+  '\u2039': 'ஹ்', // ‹ -> h
+  '\u0152': 'க்ஷ்', // Œ -> ksh
+  '\u0161': 'ஷ்', // š
+  '\u017D': 'ஜ',  // Ž
+  '\u017E': 'ஜ்'  // ž
+};
+
+function fixGranthaGlyphs(str) {
+  if (!str) return '';
+  let res = String(str);
+
+  res = res.replace(/(^|[^க-ஹ])([ேெை])([ƒ„…†‡ˆ‰Š‹ŒšŽž])ா/g, (match, prefix, pre, grantha) => {
+    const g = GRANTHA_GLYPH_MAP[grantha] || grantha;
+    return prefix + (pre === 'ே' ? g + 'ோ' : g + 'ொ');
+  });
+
+  res = res.replace(/(^|[^க-ஹ])([ேெை])([ƒ„…†‡ˆ‰Š‹ŒšŽž])/g, (match, prefix, pre, grantha) => {
+    const g = GRANTHA_GLYPH_MAP[grantha] || grantha;
+    return prefix + g + pre;
+  });
+
+  res = res.replace(/([ƒ„…†‡ˆ‰Š‹ŒšŽž])/g, (match, grantha) => {
+    return GRANTHA_GLYPH_MAP[grantha] || grantha;
+  });
+
+  return res;
+}
+
 function isTscii(str) {
   if (!str || typeof str !== 'string') return false;
   let count = 0;
@@ -110,21 +147,27 @@ function cleanTamilText(input) {
   if (!input) return '';
   let str = String(input).trim();
   if (!str) return '';
+
   str = decodeMojibake(str);
+  str = fixGranthaGlyphs(str);
+
   if (/[\u0B80-\u0BFF]/.test(str)) {
     return str.normalize('NFC');
   }
+
   if (isTscii(str)) {
     const converted = tsciiToUnicode(str);
     if (/[\u0B80-\u0BFF]/.test(converted)) {
-      return converted.normalize('NFC');
+      return fixGranthaGlyphs(converted).normalize('NFC');
     }
   }
+
   return str.normalize('NFC');
 }
 
 module.exports = {
   cleanTamilText,
   tsciiToUnicode,
-  decodeMojibake
+  decodeMojibake,
+  fixGranthaGlyphs
 };

@@ -144,6 +144,51 @@ export function decodeMojibake(str) {
 }
 
 /**
+ * Grantha glyph mapping from Windows-1252 / legacy Tamil font encoding
+ */
+const GRANTHA_GLYPH_MAP = {
+  '\u0192': 'ஜ', // ƒ -> Ja
+  '\u201E': 'ஷ', // „ -> Sha
+  '\u2026': 'ஸ', // … -> Sa
+  '\u2020': 'ஹ', // † -> Ha
+  '\u2021': 'க்ஷ', // ‡ -> Ksha
+  '\u02C6': 'ஜ்', // ˆ -> j
+  '\u2030': 'ஷ்', // ‰ -> sh
+  '\u0160': 'ஸ்', // Š -> s
+  '\u2039': 'ஹ்', // ‹ -> h
+  '\u0152': 'க்ஷ்', // Œ -> ksh
+  '\u0161': 'ஷ்', // š
+  '\u017D': 'ஜ',  // Ž
+  '\u017E': 'ஜ்'  // ž
+};
+
+export function fixGranthaGlyphs(str) {
+  if (!str) return '';
+  let res = String(str);
+
+  // 1. Two-part pre+post modifiers at start of word or after non-Tamil consonant:
+  // E.g. ' ே†ாட்டல்' -> ' ஹோட்டல்', ' ே„ால்டர்' -> ' ஷோல்டர்'
+  res = res.replace(/(^|[^க-ஹ])([ேெை])([ƒ„…†‡ˆ‰Š‹ŒšŽž])ா/g, (match, prefix, pre, grantha) => {
+    const g = GRANTHA_GLYPH_MAP[grantha] || grantha;
+    return prefix + (pre === 'ே' ? g + 'ோ' : g + 'ொ');
+  });
+
+  // 2. Pre-modifiers at start of word or after non-Tamil consonant:
+  // E.g. ' ே†ர்' -> ' ஹேர்', ' ெ†ட்' -> ' ஹெட்', ' ை„ன்' -> ' ஷைன்'
+  res = res.replace(/(^|[^க-ஹ])([ேெை])([ƒ„…†‡ˆ‰Š‹ŒšŽž])/g, (match, prefix, pre, grantha) => {
+    const g = GRANTHA_GLYPH_MAP[grantha] || grantha;
+    return prefix + g + pre;
+  });
+
+  // 3. Replace all remaining Grantha characters
+  res = res.replace(/([ƒ„…†‡ˆ‰Š‹ŒšŽž])/g, (match, grantha) => {
+    return GRANTHA_GLYPH_MAP[grantha] || grantha;
+  });
+
+  return res;
+}
+
+/**
  * Checks if a string contains TSCII encoded characters (values in 0x80 - 0xFF range)
  */
 export function isTscii(str) {
@@ -158,7 +203,7 @@ export function isTscii(str) {
 
 /**
  * Master cleaner for any Tamil product name
- * Automatically handles Unicode, TSCII, and Mojibake!
+ * Automatically handles Unicode, TSCII, Mojibake, and legacy Grantha font glyphs!
  */
 export function cleanTamilText(input) {
   if (!input) return '';
@@ -168,16 +213,19 @@ export function cleanTamilText(input) {
   // 1. Try un-mangling UTF-8 mojibake first
   str = decodeMojibake(str);
 
-  // 2. If it is already clean Tamil Unicode, return normalized
+  // 2. Fix Grantha glyphs (e.g. † -> ஹ, Š -> ஸ், ƒ -> ஜ, „ -> ஷ, etc.)
+  str = fixGranthaGlyphs(str);
+
+  // 3. If it is already clean Tamil Unicode, return normalized
   if (/[\u0B80-\u0BFF]/.test(str)) {
     return str.normalize('NFC');
   }
 
-  // 3. If it looks like TSCII, convert to Unicode
+  // 4. If it looks like TSCII, convert to Unicode
   if (isTscii(str)) {
     const converted = tsciiToUnicode(str);
     if (/[\u0B80-\u0BFF]/.test(converted)) {
-      return converted.normalize('NFC');
+      return fixGranthaGlyphs(converted).normalize('NFC');
     }
   }
 
