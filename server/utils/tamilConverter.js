@@ -46,9 +46,11 @@ function tsciiToUnicode(input) {
       out += input[i];
       continue;
     }
+    // Pre-modifiers: 0xA6 (ெ), 0xA7 (ே), 0xA8 (ை)
     if (c === 0xA6 || c === 0xA7 || c === 0xA8) {
       const nextC = i + 1 < len ? input.charCodeAt(i + 1) : 0;
-      const cons = TSCII_MAP[nextC] || '';
+      const nextChar = i + 1 < len ? input[i + 1] : '';
+      const cons = TSCII_MAP[nextC] || (nextC >= 0x0B80 && nextC <= 0x0BFF ? nextChar : '');
       const afterC = i + 2 < len ? input.charCodeAt(i + 2) : 0;
       if (c === 0xA6 && afterC === 0xA1 && cons) {
         out += cons + 'ொ';
@@ -151,15 +153,16 @@ function cleanTamilText(input) {
   str = decodeMojibake(str);
   str = fixGranthaGlyphs(str);
 
-  if (/[\u0B80-\u0BFF]/.test(str)) {
-    return str.normalize('NFC');
-  }
-
-  if (isTscii(str)) {
+  // If it contains TSCII characters, convert them
+  if (/[\x80-\xff]/.test(str)) {
     const converted = tsciiToUnicode(str);
     if (/[\u0B80-\u0BFF]/.test(converted)) {
       return fixGranthaGlyphs(converted).normalize('NFC');
     }
+  }
+
+  if (/[\u0B80-\u0BFF]/.test(str)) {
+    return str.normalize('NFC');
   }
 
   return str.normalize('NFC');

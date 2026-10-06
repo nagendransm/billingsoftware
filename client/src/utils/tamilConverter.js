@@ -88,7 +88,8 @@ export function tsciiToUnicode(input) {
     // Pre-modifiers: 0xA6 (ெ), 0xA7 (ே), 0xA8 (ை)
     if (c === 0xA6 || c === 0xA7 || c === 0xA8) {
       const nextC = i + 1 < len ? input.charCodeAt(i + 1) : 0;
-      const cons = TSCII_MAP[nextC] || '';
+      const nextChar = i + 1 < len ? input[i + 1] : '';
+      const cons = TSCII_MAP[nextC] || (nextC >= 0x0B80 && nextC <= 0x0BFF ? nextChar : '');
       const afterC = i + 2 < len ? input.charCodeAt(i + 2) : 0;
 
       if (c === 0xA6 && afterC === 0xA1 && cons) {
@@ -216,17 +217,17 @@ export function cleanTamilText(input) {
   // 2. Fix Grantha glyphs (e.g. † -> ஹ, Š -> ஸ், ƒ -> ஜ, „ -> ஷ, etc.)
   str = fixGranthaGlyphs(str);
 
-  // 3. If it is already clean Tamil Unicode, return normalized
-  if (/[\u0B80-\u0BFF]/.test(str)) {
-    return str.normalize('NFC');
-  }
-
-  // 4. If it looks like TSCII, convert to Unicode
-  if (isTscii(str)) {
+  // 3. If it contains TSCII characters, convert them
+  if (/[\x80-\xff]/.test(str)) {
     const converted = tsciiToUnicode(str);
     if (/[\u0B80-\u0BFF]/.test(converted)) {
       return fixGranthaGlyphs(converted).normalize('NFC');
     }
+  }
+
+  // 4. If it is already clean Tamil Unicode, return normalized
+  if (/[\u0B80-\u0BFF]/.test(str)) {
+    return str.normalize('NFC');
   }
 
   return str.normalize('NFC');
