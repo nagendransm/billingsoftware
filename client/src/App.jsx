@@ -229,7 +229,7 @@ export default function App() {
       />
 
       {/* Main Tab Screen Content */}
-      <main className={`no-print flex-1 min-h-0 ${activeTab === 'pos' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto pb-4'}`}>
+      <main className={`no-print flex-1 min-h-0 relative z-10 ${activeTab === 'pos' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto pb-4'}`}>
         {activeTab === 'pos' && (
           <PosScreen
             products={products}

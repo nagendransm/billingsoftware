@@ -412,15 +412,23 @@ export default function PosScreen({
     setHighlightedIndex(0);
   };
 
-  // Close dropdown on outside click
+  // Close dropdown on outside click or global navbar event
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
         setSearchResults([]);
       }
     };
+    const handleGlobalClose = () => {
+      setSearchResults([]);
+      setShowCustomerDropdown(false);
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    window.addEventListener('close-pos-dropdowns', handleGlobalClose);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('close-pos-dropdowns', handleGlobalClose);
+    };
   }, []);
 
   // Live Search filter with alphabetical sorting
@@ -1082,15 +1090,15 @@ export default function PosScreen({
                 ref={searchInputRef}
                 type="text"
                 value={searchQuery}
-                onFocus={() => {
-                  if (!searchQuery.trim()) {
-                    showAllAlphabeticalProducts();
-                  }
-                }}
                 onClick={() => {
                   if (!searchQuery.trim()) {
                     showAllAlphabeticalProducts();
                   }
+                }}
+                onBlur={() => {
+                  setTimeout(() => {
+                    setSearchResults([]);
+                  }, 180);
                 }}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -1148,7 +1156,7 @@ export default function PosScreen({
             {searchResults.length > 0 && (
               <div 
                 ref={dropdownListRef}
-                className="absolute left-0 right-0 top-full mt-1 bg-white border-2 border-emerald-600 rounded shadow-2xl z-50 max-h-60 overflow-y-auto divide-y divide-slate-200"
+                className="absolute left-0 right-0 top-full mt-1 bg-white border-2 border-emerald-600 rounded shadow-2xl z-30 max-h-60 overflow-y-auto divide-y divide-slate-200"
               >
                 {/* Header showing count and alphabetical status */}
                 <div className="sticky top-0 bg-slate-100 border-b border-slate-300 px-2 py-1 text-[10px] font-bold text-slate-700 flex justify-between items-center z-10 select-none">

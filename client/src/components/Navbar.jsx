@@ -91,7 +91,7 @@ export default function Navbar({
   };
 
   return (
-    <header className="no-print bg-slate-900 text-white border-b-2 border-slate-700 select-none flex-shrink-0 w-full relative z-50">
+    <header className="no-print bg-slate-900 text-white border-b-2 border-slate-700 select-none flex-shrink-0 w-full relative z-[100]">
       <div className="w-full px-2 py-1 flex items-center justify-between gap-1.5">
         
         {/* Center: Compact Navigation Tabs */}
@@ -102,12 +102,13 @@ export default function Navbar({
 
             if (item.isDropdown) {
               return (
-                <div key={item.id} ref={billingDropdownRef} className="relative z-50">
+                <div key={item.id} ref={billingDropdownRef} className="relative z-[100]">
                   <button
                     onClick={() => {
                       if (activeTab !== 'pos') {
                         setActiveTab('pos');
                       }
+                      window.dispatchEvent(new CustomEvent('close-pos-dropdowns'));
                       setShowBillingDropdown(prev => !prev);
                     }}
                     className={`px-2 py-0.5 text-[11px] sm:text-xs font-semibold rounded border transition-colors whitespace-nowrap flex items-center space-x-1 ${
@@ -126,7 +127,7 @@ export default function Navbar({
                   {/* Billing Mode Dropdown Menu */}
                   {showBillingDropdown && (
                     <div 
-                      className="absolute left-0 top-full mt-1 w-84 bg-slate-900 border-2 border-emerald-500 rounded-md shadow-2xl z-[999] py-1 overflow-hidden animate-fade-in text-slate-200"
+                      className="absolute left-0 top-full mt-1.5 w-84 bg-slate-900 border-2 border-emerald-500 rounded-md shadow-2xl z-[9999] py-1 overflow-hidden animate-fade-in text-slate-200"
                       style={{ minWidth: '22rem' }}
                     >
                       <div className="px-3 py-1.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-[11px]">
