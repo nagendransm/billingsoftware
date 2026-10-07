@@ -91,8 +91,8 @@ export default function Navbar({
   };
 
   return (
-    <header className="no-print bg-slate-900 text-white border-b-2 border-slate-700 select-none flex-shrink-0 w-full">
-      <div className="w-full px-2 py-1 flex items-center justify-between gap-1.5 overflow-x-hidden">
+    <header className="no-print bg-slate-900 text-white border-b-2 border-slate-700 select-none flex-shrink-0 w-full relative z-50">
+      <div className="w-full px-2 py-1 flex items-center justify-between gap-1.5">
         
         {/* Center: Compact Navigation Tabs */}
         <nav className="flex items-center space-x-1 flex-shrink-0">
@@ -102,7 +102,7 @@ export default function Navbar({
 
             if (item.isDropdown) {
               return (
-                <div key={item.id} ref={billingDropdownRef} className="relative">
+                <div key={item.id} ref={billingDropdownRef} className="relative z-50">
                   <button
                     onClick={() => {
                       if (activeTab !== 'pos') {
@@ -125,7 +125,10 @@ export default function Navbar({
 
                   {/* Billing Mode Dropdown Menu */}
                   {showBillingDropdown && (
-                    <div className="absolute left-0 top-full mt-1 w-80 bg-slate-900 border-2 border-emerald-500 rounded-md shadow-2xl z-50 py-1 overflow-hidden animate-fade-in text-slate-200">
+                    <div 
+                      className="absolute left-0 top-full mt-1 w-84 bg-slate-900 border-2 border-emerald-500 rounded-md shadow-2xl z-[999] py-1 overflow-hidden animate-fade-in text-slate-200"
+                      style={{ minWidth: '22rem' }}
+                    >
                       <div className="px-3 py-1.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-[11px]">
                         <span className="font-bold text-white font-tamil">
                           {lang === 'ta' ? 'பில்லிங் முறையைத் தேர்வு செய்க' : 'Select Billing Type'}
