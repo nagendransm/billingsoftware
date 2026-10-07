@@ -423,30 +423,100 @@ export default function PosScreen({
       setSearchResults([]);
       setShowCustomerDropdown(false);
     };
+    const handleFocusSearch = () => {
+      if (searchInputRef.current) {
+        searchInputRef.current.focus();
+        searchInputRef.current.select();
+      }
+    };
     document.addEventListener('mousedown', handleClickOutside);
     window.addEventListener('close-pos-dropdowns', handleGlobalClose);
+    window.addEventListener('focus-pos-search', handleFocusSearch);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('close-pos-dropdowns', handleGlobalClose);
+      window.removeEventListener('focus-pos-search', handleFocusSearch);
     };
   }, []);
 
-  // Live Search filter with alphabetical sorting
+  // Live Search filter with preference: Product Name first, Barcode secondary (excluded when typing letters)
   useEffect(() => {
-    if (!searchQuery.trim()) {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) {
       return;
     }
 
-    const q = searchQuery.toLowerCase().trim();
-    const matches = products.filter(p => 
-      (p.name_en && p.name_en.toLowerCase().includes(q)) ||
-      (p.name_ta && p.name_ta.includes(q)) ||
-      (p.barcode && p.barcode.toLowerCase().includes(q)) ||
-      (p.hsn_code && p.hsn_code.includes(q))
+    const q = trimmed.toLowerCase();
+    // Detect if search query contains letters (English a-z or Tamil characters \u0B80-\u0BFF)
+    const hasLetters = /[a-zA-Z\u0B80-\u0BFF]/.test(trimmed);
+
+    // 1. First Preference: Search Product Name in Tamil and English
+    const nameMatches = products.filter(p => 
+      (p.name_ta && p.name_ta.toLowerCase().includes(q)) ||
+      (p.name_en && p.name_en.toLowerCase().includes(q))
     );
 
-    const sortedMatches = sortProductsAlphabetically(matches, lang);
-    setSearchResults(sortedMatches);
+    // Sort name matches: exact match -> startsWith -> other matches, alphabetically sorted within each tier
+    const sortedNameMatches = [...nameMatches].sort((a, b) => {
+      const aTa = (a.name_ta || '').toLowerCase();
+      const bTa = (b.name_ta || '').toLowerCase();
+      const aEn = (a.name_en || '').toLowerCase();
+      const bEn = (b.name_en || '').toLowerCase();
+
+      const aExact = aTa === q || aEn === q;
+      const bExact = bTa === q || bEn === q;
+      if (aExact && !bExact) return -1;
+      if (!aExact && bExact) return 1;
+
+      const aStarts = aTa.startsWith(q) || aEn.startsWith(q);
+      const bStarts = bTa.startsWith(q) || bEn.startsWith(q);
+      if (aStarts && !bStarts) return -1;
+      if (!aStarts && bStarts) return 1;
+
+      const nameA = lang === 'ta' ? (a.name_ta || a.name_en || '') : (a.name_en || a.name_ta || '');
+      const nameB = lang === 'ta' ? (b.name_ta || b.name_en || '') : (b.name_en || b.name_ta || '');
+      return nameA.trim().localeCompare(nameB.trim(), lang === 'ta' ? 'ta' : 'en', {
+        numeric: true,
+        sensitivity: 'base'
+      });
+    });
+
+    // 2. Barcode Matching:
+    // When typing letters: do NOT search barcode substring!
+    // Only if exact barcode match exists (e.g. manual alphanumeric code), include it after name matches.
+    // When typing numbers or digits: search barcode, but name matches STILL have first preference!
+    let barcodeMatches = [];
+    if (!hasLetters) {
+      barcodeMatches = products.filter(p => p.barcode && p.barcode.toLowerCase().includes(q));
+      barcodeMatches.sort((a, b) => {
+        const aExact = (a.barcode || '').toLowerCase() === q;
+        const bExact = (b.barcode || '').toLowerCase() === q;
+        if (aExact && !bExact) return -1;
+        if (!aExact && bExact) return 1;
+        const aStarts = (a.barcode || '').toLowerCase().startsWith(q);
+        const bStarts = (b.barcode || '').toLowerCase().startsWith(q);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+        return 0;
+      });
+    } else {
+      const exact = products.find(p => p.barcode && p.barcode.toLowerCase() === q);
+      if (exact) {
+        barcodeMatches = [exact];
+      }
+    }
+
+    // Combine: Name matches are always first preference, barcode matches appended if not already present
+    const combined = [...sortedNameMatches];
+    const seenIds = new Set(sortedNameMatches.map(p => p.id));
+    for (const bm of barcodeMatches) {
+      if (!seenIds.has(bm.id)) {
+        combined.push(bm);
+        seenIds.add(bm.id);
+      }
+    }
+
+    setSearchResults(combined);
     setHighlightedIndex(0);
   }, [searchQuery, products, lang]);
 
@@ -482,7 +552,11 @@ export default function PosScreen({
     } else if (!prod && searchResults.length > 0) {
       prod = searchResults[0];
     } else if (!prod && searchQuery.trim()) {
-      prod = products.find(p => p.barcode === searchQuery.trim());
+      const qTrim = searchQuery.trim().toLowerCase();
+      prod = products.find(p => 
+        (p.name_ta && p.name_ta.toLowerCase() === qTrim) || 
+        (p.name_en && p.name_en.toLowerCase() === qTrim)
+      ) || products.find(p => p.barcode && p.barcode.toLowerCase() === qTrim);
     }
 
     if (!prod) return;
@@ -1137,9 +1211,18 @@ export default function PosScreen({
                     } else if (selectedProduct) {
                       handleAddItemToBill();
                     } else if (searchQuery.trim()) {
-                      const exact = products.find(p => p.barcode === searchQuery.trim());
-                      if (exact) {
-                        handleSelectProduct(exact);
+                      const qTrim = searchQuery.trim().toLowerCase();
+                      const exactName = products.find(p => 
+                        (p.name_ta && p.name_ta.toLowerCase() === qTrim) || 
+                        (p.name_en && p.name_en.toLowerCase() === qTrim)
+                      );
+                      if (exactName) {
+                        handleSelectProduct(exactName);
+                      } else {
+                        const exactBarcode = products.find(p => p.barcode && p.barcode.toLowerCase() === qTrim);
+                        if (exactBarcode) {
+                          handleSelectProduct(exactBarcode);
+                        }
                       }
                     }
                   } else if (e.key === 'Escape') {
@@ -1148,6 +1231,7 @@ export default function PosScreen({
                     setHighlightedIndex(0);
                   }
                 }}
+                id="pos-search-input"
                 placeholder={lang === 'ta' ? 'பார்கோடு ஸ்கேன் / பொருள் பெயர் தேடுக [F4]...' : 'Scan Barcode or Search Item [F4]...'}
                 className="w-full px-2.5 py-1 border-2 border-slate-400 rounded text-xs font-semibold focus:border-emerald-600 focus:outline-none"
               />

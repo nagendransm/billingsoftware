@@ -14,6 +14,7 @@ export default function Navbar({
   setBillingMode
 }) {
   const [showBillingDropdown, setShowBillingDropdown] = useState(false);
+  const [highlightedBillingIndex, setHighlightedBillingIndex] = useState(1);
   const billingDropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
@@ -26,6 +27,26 @@ export default function Navbar({
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
+
+  // Listen to F1 toggle event
+  useEffect(() => {
+    const handleToggle = () => {
+      if (activeTab !== 'pos') {
+        setActiveTab('pos');
+      }
+      window.dispatchEvent(new CustomEvent('close-pos-dropdowns'));
+      setShowBillingDropdown(prev => {
+        const next = !prev;
+        if (next) {
+          const idx = billingOptions.findIndex(o => o.id === billingMode);
+          setHighlightedBillingIndex(idx >= 0 ? idx : 0);
+        }
+        return next;
+      });
+    };
+    window.addEventListener('toggle-billing-dropdown', handleToggle);
+    return () => window.removeEventListener('toggle-billing-dropdown', handleToggle);
+  }, [activeTab, billingMode]);
 
   const shopName = lang === 'ta' 
     ? (storeSettings.shop_name_ta || storeSettings.shop_name_en || 'மளிகை கடை பில்லிங்') 
@@ -88,7 +109,53 @@ export default function Navbar({
     if (setBillingMode) setBillingMode(modeId);
     setActiveTab('pos');
     setShowBillingDropdown(false);
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('focus-pos-search'));
+    }, 50);
   };
+
+  // Keyboard navigation when billing dropdown is open (1, 2, 3, Arrows, Enter, Esc)
+  useEffect(() => {
+    if (!showBillingDropdown) return;
+
+    const handleDropdownKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowBillingDropdown(false);
+        window.dispatchEvent(new CustomEvent('focus-pos-search'));
+      } else if (e.key === '1') {
+        e.preventDefault();
+        e.stopPropagation();
+        handleSelectBillingOption('estimate');
+      } else if (e.key === '2') {
+        e.preventDefault();
+        e.stopPropagation();
+        handleSelectBillingOption('tax_invoice');
+      } else if (e.key === '3') {
+        e.preventDefault();
+        e.stopPropagation();
+        handleSelectBillingOption('return_bill');
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        e.stopPropagation();
+        setHighlightedBillingIndex(prev => (prev < billingOptions.length - 1 ? prev + 1 : 0));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        e.stopPropagation();
+        setHighlightedBillingIndex(prev => (prev > 0 ? prev - 1 : billingOptions.length - 1));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (highlightedBillingIndex >= 0 && highlightedBillingIndex < billingOptions.length) {
+          handleSelectBillingOption(billingOptions[highlightedBillingIndex].id);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleDropdownKeyDown, true);
+    return () => window.removeEventListener('keydown', handleDropdownKeyDown, true);
+  }, [showBillingDropdown, highlightedBillingIndex]);
 
   return (
     <header className="no-print bg-slate-900 text-white border-b-2 border-slate-700 select-none flex-shrink-0 w-full relative z-[100]">
@@ -109,7 +176,14 @@ export default function Navbar({
                         setActiveTab('pos');
                       }
                       window.dispatchEvent(new CustomEvent('close-pos-dropdowns'));
-                      setShowBillingDropdown(prev => !prev);
+                      setShowBillingDropdown(prev => {
+                        const next = !prev;
+                        if (next) {
+                          const idx = billingOptions.findIndex(o => o.id === billingMode);
+                          setHighlightedBillingIndex(idx >= 0 ? idx : 0);
+                        }
+                        return next;
+                      });
                     }}
                     className={`px-2 py-0.5 text-[11px] sm:text-xs font-semibold rounded border transition-colors whitespace-nowrap flex items-center space-x-1 ${
                       isActive
@@ -132,29 +206,36 @@ export default function Navbar({
                     >
                       <div className="px-3 py-1.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-[11px]">
                         <span className="font-bold text-white font-tamil">
-                          {lang === 'ta' ? 'பில்லிங் முறையைத் தேர்வு செய்க' : 'Select Billing Type'}
+                          {lang === 'ta' ? 'பில்லிங் முறையைத் தேர்வு செய்க [1, 2, 3]' : 'Select Billing Type [1, 2, 3]'}
                         </span>
-                        <span className="text-[10px] text-emerald-400 font-mono font-bold">[F1]</span>
+                        <span className="text-[10px] text-emerald-400 font-mono font-bold">[F1 / Esc]</span>
                       </div>
 
                       <div className="divide-y divide-slate-800">
-                        {billingOptions.map(opt => {
+                        {billingOptions.map((opt, optIdx) => {
                           const isSelected = billingMode === opt.id;
+                          const isHighlighted = highlightedBillingIndex === optIdx;
                           return (
                             <button
                               key={opt.id}
                               onClick={() => handleSelectBillingOption(opt.id)}
+                              onMouseEnter={() => setHighlightedBillingIndex(optIdx)}
                               className={`w-full text-left px-3 py-2 flex items-start space-x-2.5 transition-colors ${
-                                isSelected
-                                  ? 'bg-emerald-950/70 border-l-4 border-emerald-400 text-white'
-                                  : 'hover:bg-slate-800/90 text-slate-300'
+                                isHighlighted
+                                  ? 'bg-emerald-950/90 border-l-4 border-emerald-400 text-white'
+                                  : isSelected
+                                    ? 'bg-slate-800/80 border-l-4 border-emerald-500 text-white'
+                                    : 'hover:bg-slate-800/90 text-slate-300'
                               }`}
                             >
                               <span className="text-base mt-0.5">{opt.icon}</span>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
-                                  <div className="font-bold text-xs font-tamil text-white">
-                                    {lang === 'ta' ? opt.labelTa : opt.labelEn}
+                                  <div className="font-bold text-xs font-tamil text-white flex items-center space-x-1.5">
+                                    <span>{lang === 'ta' ? opt.labelTa : opt.labelEn}</span>
+                                    <span className="text-[10px] font-mono font-bold px-1 py-0.2 rounded bg-slate-800 text-emerald-400 border border-slate-700">
+                                      [{optIdx + 1}]
+                                    </span>
                                   </div>
                                   {isSelected && (
                                     <span className="text-emerald-400 text-xs font-bold font-mono">✓</span>

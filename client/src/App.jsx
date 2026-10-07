@@ -136,6 +136,7 @@ export default function App() {
         e.preventDefault();
         e.stopPropagation();
         setActiveTab('pos');
+        window.dispatchEvent(new CustomEvent('toggle-billing-dropdown'));
       } else if (e.key === 'F2') {
         // Only switch to Products if admin and NOT on POS (POS uses F2 for New Bill)
         // If on POS screen, PosScreen's own listener handles F2 for New Bill!
