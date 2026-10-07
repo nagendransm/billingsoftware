@@ -114,12 +114,13 @@ export default function App() {
     loadCustomers();
   }, []);
 
+  const titleName = lang === 'ta'
+    ? (storeSettings.shop_name_ta || storeSettings.shop_name_en || 'மளிகை கடை பில்லிங்')
+    : (storeSettings.shop_name_en || storeSettings.shop_name_ta || 'Grocery Billing POS');
+
   useEffect(() => {
-    const titleName = lang === 'ta'
-      ? (storeSettings.shop_name_ta || storeSettings.shop_name_en || 'மளிகை கடை பில்லிங்')
-      : (storeSettings.shop_name_en || storeSettings.shop_name_ta || 'Grocery Billing POS');
     document.title = titleName;
-  }, [storeSettings, lang]);
+  }, [titleName]);
 
   // Tab Hotkeys (F1 to F6) - Bulletproof with capture phase & role check
   const currentUserRef = useRef(currentUser);
@@ -196,6 +197,20 @@ export default function App() {
       {!currentUser && (
         <LoginModal onLogin={handleLogin} lang={lang} />
       )}
+
+      {/* Top Application Window Bar (Enlarged Title Bar with Shop Name Only) */}
+      <header 
+        className="no-print w-full bg-[#0b0f19] text-white flex items-center justify-between border-b border-slate-800 select-none flex-shrink-0"
+        style={{ height: '42px', WebkitAppRegion: 'drag' }}
+      >
+        <div className="flex items-center px-4 h-full">
+          <h1 className="text-base sm:text-lg font-bold text-white font-tamil tracking-wide whitespace-nowrap leading-none select-none">
+            {titleName}
+          </h1>
+        </div>
+        {/* Right reservation for Windows minimize, maximize, and close overlay buttons */}
+        <div style={{ width: '140px', height: '100%', WebkitAppRegion: 'no-drag' }} />
+      </header>
 
       {/* Top Navbar */}
       <Navbar

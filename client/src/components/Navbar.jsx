@@ -35,16 +35,6 @@ export default function Navbar({
     <header className="no-print bg-slate-900 text-white border-b-2 border-slate-700 select-none flex-shrink-0 w-full">
       <div className="w-full px-2 py-1 flex items-center justify-between gap-1.5 overflow-x-hidden">
         
-        {/* Left: Shop Name Only (Enlarged tab, shop name only, no other text) */}
-        <div 
-          className="flex items-center cursor-pointer flex-shrink-0 px-3 py-1.5 bg-slate-800/90 border border-slate-600 hover:border-emerald-500 rounded-md shadow-xs transition-colors"
-          onClick={() => setActiveTab('pos')}
-          title={shopName}
-        >
-          <h1 className="text-base sm:text-lg font-bold text-white font-tamil tracking-wide whitespace-nowrap leading-none">
-            {shopName}
-          </h1>
-        </div>
 
         {/* Center: Compact Navigation Tabs */}
         <nav className="flex items-center space-x-1 flex-shrink-0">
