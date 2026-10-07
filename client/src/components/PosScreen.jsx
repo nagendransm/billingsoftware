@@ -7,7 +7,9 @@ export default function PosScreen({
   storeSettings = {},
   lang = 'ta',
   t = {},
-  onInvoiceCreated
+  onInvoiceCreated,
+  billingMode = 'tax_invoice',
+  setBillingMode
 }) {
   // Cart & Bill State
   const [cart, setCart] = useState([]);
@@ -96,6 +98,22 @@ export default function PosScreen({
 
   // Next Bill Number calculation
   const nextBillNo = React.useMemo(() => {
+    if (billingMode === 'estimate') {
+      const lastEst = pastInvoices.find(inv => inv.bill_type === 'estimate' || inv.invoice_no?.startsWith('EST/'));
+      if (lastEst && lastEst.invoice_no) {
+        const m = lastEst.invoice_no.match(/(\d+)$/);
+        if (m) return `EST/${parseInt(m[1], 10) + 1}`;
+      }
+      return 'EST/1001';
+    }
+    if (billingMode === 'return_bill') {
+      const lastRet = pastInvoices.find(inv => inv.bill_type === 'return_bill' || inv.invoice_no?.startsWith('RET/'));
+      if (lastRet && lastRet.invoice_no) {
+        const m = lastRet.invoice_no.match(/(\d+)$/);
+        if (m) return `RET/${parseInt(m[1], 10) + 1}`;
+      }
+      return 'RET/1001';
+    }
     const prefix = storeSettings.bill_prefix || 'BILL/';
     if (storeSettings.next_bill_number) {
       return `${prefix}${storeSettings.next_bill_number}`;
@@ -105,7 +123,7 @@ export default function PosScreen({
       return `${prefix}${1001 + topId}`;
     }
     return `${prefix}1001`;
-  }, [storeSettings, pastInvoices]);
+  }, [storeSettings, pastInvoices, billingMode]);
 
   // Load a past bill by index (-1 = return to new bill draft)
   const loadPastBill = async (index) => {
@@ -504,17 +522,32 @@ export default function PosScreen({
     }
   };
 
-  // GST Calculation per Line (MRP Inclusive Grocery Standard)
-  const calculateLineTotals = (item) => {
+  // GST Calculation per Line (MRP Inclusive Grocery Standard, or No-Tax for Estimate & Return)
+  const calculateLineTotals = (item, currentMode = billingMode) => {
     const unitPrice = Number(item.unit_price);
     const qty = Number(item.quantity);
     const disc = Number(item.discount_percent || 0);
-    const gstRate = Number(item.gst_rate || 0);
 
     const gross = unitPrice * qty;
     const discAmt = Number(((gross * disc) / 100).toFixed(2));
     const effectiveTotal = Number((gross - discAmt).toFixed(2));
 
+    // For Estimate Bill or Return Bill: "no need apply tax"
+    if (currentMode === 'estimate' || currentMode === 'return_bill') {
+      return {
+        ...item,
+        discount_amount: discAmt,
+        taxable_value: effectiveTotal,
+        gst_rate: 0,
+        cgst_rate: 0,
+        cgst_amount: 0,
+        sgst_rate: 0,
+        sgst_amount: 0,
+        total: effectiveTotal
+      };
+    }
+
+    const gstRate = Number(item.gst_rate || 0);
     let taxable = effectiveTotal;
     let totalTax = 0;
     if (gstRate > 0) {
@@ -536,6 +569,13 @@ export default function PosScreen({
       total: effectiveTotal
     };
   };
+
+  // When billingMode changes, automatically recompute cart taxes
+  useEffect(() => {
+    if (cart.length > 0) {
+      setCart(prev => prev.map(item => calculateLineTotals(item, billingMode)));
+    }
+  }, [billingMode]);
 
   // Update Cart Quantity
   const updateQuantity = (idx, newQty) => {
@@ -689,6 +729,7 @@ export default function PosScreen({
 
     try {
       const payload = {
+        bill_type: billingMode,
         customer_id: selectedCustomerId || null,
         customer_name: customerName,
         customer_phone: customerPhone,
@@ -788,9 +829,49 @@ export default function PosScreen({
               <span>{lang === 'ta' ? 'முந்தைய ரசீது' : 'Past Bill'} ({pastBillIndex + 1}/{pastInvoices.length})</span>
             </span>
           ) : (
-            <span className="bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded text-[10px] border border-emerald-300">
-              ● {lang === 'ta' ? 'புதிய பில்' : 'New Bill'}
-            </span>
+            <div className="flex items-center space-x-1">
+              <button
+                type="button"
+                onClick={() => setBillingMode && setBillingMode('estimate')}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors flex items-center space-x-1 whitespace-nowrap ${
+                  billingMode === 'estimate'
+                    ? 'bg-amber-500 text-white border-amber-600 shadow-xs ring-1 ring-amber-300'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                }`}
+                title={lang === 'ta' ? 'விற்பனை மதிப்பீடு (வரி இல்லை)' : 'Sales Bill (Estimate - No Tax)'}
+              >
+                <span>📝</span>
+                <span>{lang === 'ta' ? 'மதிப்பீடு (வரி இல்லை)' : 'Estimate (No Tax)'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setBillingMode && setBillingMode('tax_invoice')}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors flex items-center space-x-1 whitespace-nowrap ${
+                  billingMode === 'tax_invoice'
+                    ? 'bg-emerald-600 text-white border-emerald-700 shadow-xs ring-1 ring-emerald-300'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                }`}
+                title={lang === 'ta' ? 'ஜிஎஸ்டி விற்பனை பில் (வரியுடன்)' : 'GST Sales Bill (With Tax)'}
+              >
+                <span>🧾</span>
+                <span>{lang === 'ta' ? 'ஜிஎஸ்டி பில் (வரியுடன்)' : 'GST Bill (With Tax)'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setBillingMode && setBillingMode('return_bill')}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors flex items-center space-x-1 whitespace-nowrap ${
+                  billingMode === 'return_bill'
+                    ? 'bg-rose-600 text-white border-rose-700 shadow-xs ring-1 ring-rose-300'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                }`}
+                title={lang === 'ta' ? 'பொருட்கள் திருப்பல் பில் (வரி இல்லை, சரக்கு கூடும்)' : 'Return Bill (No Tax, Restores Stock)'}
+              >
+                <span>🔄</span>
+                <span>{lang === 'ta' ? 'திருப்பல் பில் (சரக்கு கூடும்)' : 'Return Bill (Stock Update)'}</span>
+              </button>
+            </div>
           )}
         </div>
 
@@ -958,7 +1039,41 @@ export default function PosScreen({
           </div>
         </div>
       ) : (
-        <div className="bg-white px-2.5 py-1 rounded border border-slate-300 shadow-xs flex-shrink-0">
+        <>
+          {/* Mode Notification Banners */}
+          {billingMode === 'return_bill' && (
+            <div className="bg-rose-700 text-white px-3 py-1.5 rounded flex items-center justify-between text-xs font-bold shadow-xs flex-shrink-0 animate-fade-in border border-rose-800">
+              <div className="flex items-center space-x-2">
+                <span className="text-base">🔄</span>
+                <span className="font-tamil">
+                  {lang === 'ta' 
+                    ? 'பொருட்கள் திருப்பல் முறை: வாடிக்கையாளர் திருப்பும் பொருட்கள். வரி இல்லை. இப்பொருட்கள் சரக்கு இருப்புக்கு மீண்டும் சேர்க்கப்படும்!' 
+                    : 'RETURN BILL MODE: Customer returning items. No tax applied. Products will be ADDED BACK to inventory stock!'}
+                </span>
+              </div>
+              <span className="bg-rose-900 text-white px-2 py-0.5 rounded text-[10px] font-mono border border-rose-400 whitespace-nowrap">
+                {lang === 'ta' ? 'சரக்கு இருப்பு கூடும் (+)' : 'Stock Will Be Restored (+)'}
+              </span>
+            </div>
+          )}
+
+          {billingMode === 'estimate' && (
+            <div className="bg-amber-600 text-white px-3 py-1.5 rounded flex items-center justify-between text-xs font-bold shadow-xs flex-shrink-0 animate-fade-in border border-amber-700">
+              <div className="flex items-center space-x-2">
+                <span className="text-base">📝</span>
+                <span className="font-tamil">
+                  {lang === 'ta' 
+                    ? 'விற்பனை மதிப்பீடு முறை: வாடிக்கையாளருக்கு மதிப்பீடு வழங்க பயன்படுகிறது. வரி சேர்க்கப்படாது (No Tax).' 
+                    : 'ESTIMATE BILL MODE: For customer price estimate. No GST tax applied (0% Tax).'}
+                </span>
+              </div>
+              <span className="bg-amber-800 text-white px-2 py-0.5 rounded text-[10px] font-mono border border-amber-400 whitespace-nowrap">
+                {lang === 'ta' ? 'வரி இல்லை' : 'No Tax (0%)'}
+              </span>
+            </div>
+          )}
+
+          <div className="bg-white px-2.5 py-1 rounded border border-slate-300 shadow-xs flex-shrink-0">
           <div className="flex flex-wrap items-center gap-1.5">
             
             {/* Barcode / Item Name Search with Alphabetical Listing on Backspace */}
@@ -1149,6 +1264,7 @@ export default function PosScreen({
 
         </div>
       </div>
+      </>
       )}
 
       {/* ======================================================== */}
@@ -1431,9 +1547,16 @@ export default function PosScreen({
           {/* Bold Grand Total Box */}
           <div className="bg-slate-900 text-white px-2.5 py-1.5 rounded flex items-center justify-between shadow-xs">
             <span className="text-xs sm:text-sm font-bold font-tamil tracking-wide">
-              {lang === 'ta' ? 'மொத்தத் தொகை (NET PAYABLE):' : 'GRAND TOTAL:'}
+              {billingMode === 'return_bill'
+                ? (lang === 'ta' ? 'திருப்பிய தொகை (REFUND):' : 'REFUND TOTAL:')
+                : billingMode === 'estimate'
+                  ? (lang === 'ta' ? 'மதிப்பீட்டுத் தொகை (ESTIMATE):' : 'ESTIMATE TOTAL:')
+                  : (lang === 'ta' ? 'மொத்தத் தொகை (NET PAYABLE):' : 'GRAND TOTAL:')
+              }
             </span>
-            <span className="text-xl sm:text-2xl font-extrabold font-mono text-emerald-400">
+            <span className={`text-xl sm:text-2xl font-extrabold font-mono ${
+              billingMode === 'return_bill' ? 'text-rose-400' : billingMode === 'estimate' ? 'text-amber-400' : 'text-emerald-400'
+            }`}>
               ₹ {Number(displaySummary.grandTotal).toFixed(2)}
             </span>
           </div>
@@ -1461,9 +1584,20 @@ export default function PosScreen({
                 <button
                   onClick={() => handleSaveBill(true)}
                   disabled={cart.length === 0}
-                  className="py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded text-xs shadow-xs disabled:opacity-40 font-tamil"
+                  className={`py-1.5 text-white font-bold rounded text-xs shadow-xs disabled:opacity-40 font-tamil transition-colors ${
+                    billingMode === 'return_bill'
+                      ? 'bg-rose-700 hover:bg-rose-800'
+                      : billingMode === 'estimate'
+                        ? 'bg-amber-600 hover:bg-amber-700'
+                        : 'bg-emerald-700 hover:bg-emerald-800'
+                  }`}
                 >
-                  {lang === 'ta' ? 'அச்சிடு & சேமி [F9]' : 'Save & Print [F9]'}
+                  {billingMode === 'return_bill'
+                    ? (lang === 'ta' ? 'திருப்பல் அச்சிடு [F9]' : 'Save & Print Return [F9]')
+                    : billingMode === 'estimate'
+                      ? (lang === 'ta' ? 'மதிப்பீடு அச்சிடு [F9]' : 'Save & Print Estimate [F9]')
+                      : (lang === 'ta' ? 'அச்சிடு & சேமி [F9]' : 'Save & Print [F9]')
+                  }
                 </button>
 
                 <button
@@ -1471,7 +1605,12 @@ export default function PosScreen({
                   disabled={cart.length === 0}
                   className="py-1.5 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded text-xs shadow-xs disabled:opacity-40 font-tamil"
                 >
-                  {lang === 'ta' ? 'சேமிக்க மட்டும் [F8]' : 'Save Only [F8]'}
+                  {billingMode === 'return_bill'
+                    ? (lang === 'ta' ? 'திருப்பல் சேமி [F8]' : 'Save Return [F8]')
+                    : billingMode === 'estimate'
+                      ? (lang === 'ta' ? 'மதிப்பீடு சேமி [F8]' : 'Save Estimate [F8]')
+                      : (lang === 'ta' ? 'சேமிக்க மட்டும் [F8]' : 'Save Only [F8]')
+                  }
                 </button>
 
                 <button

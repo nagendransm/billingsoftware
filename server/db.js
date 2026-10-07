@@ -86,6 +86,7 @@ db.exec(`
     received_amount REAL DEFAULT 0,
     change_amount REAL DEFAULT 0,
     notes TEXT,
+    bill_type TEXT DEFAULT 'tax_invoice',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -135,6 +136,13 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
+
+// Migration: Ensure bill_type column exists on invoices table
+try {
+  db.exec("ALTER TABLE invoices ADD COLUMN bill_type TEXT DEFAULT 'tax_invoice';");
+} catch (e) {
+  // Column already exists
+}
 
 // Seed default users if empty
 const userCount = db.prepare('SELECT count(*) as count FROM users').get();

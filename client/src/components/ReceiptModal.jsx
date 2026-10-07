@@ -24,6 +24,9 @@ export default function ReceiptModal({
 
   if (!isOpen || !invoice) return null;
 
+  const isEstimate = invoice.bill_type === 'estimate';
+  const isReturn = invoice.bill_type === 'return_bill';
+
   const handlePrint = () => {
     window.print();
   };
@@ -34,8 +37,13 @@ export default function ReceiptModal({
         
         {/* Top Control Bar */}
         <div className="no-print bg-slate-900 text-white px-3 py-2 flex justify-between items-center text-xs">
-          <div className="font-bold font-mono">
-            {invoice.invoice_no} ({invoice.date})
+          <div className="font-bold font-mono flex items-center space-x-2">
+            <span>{invoice.invoice_no} ({invoice.date})</span>
+            <span className={`px-1.5 py-0.2 rounded text-[10px] font-sans font-bold uppercase ${
+              isReturn ? 'bg-rose-700 text-white' : isEstimate ? 'bg-amber-600 text-white' : 'bg-emerald-700 text-white'
+            }`}>
+              {isReturn ? 'Return Bill' : isEstimate ? 'Estimate' : 'Tax Invoice'}
+            </span>
           </div>
 
           <div className="flex items-center space-x-2">
@@ -87,18 +95,16 @@ export default function ReceiptModal({
                     {storeSettings.shop_name_en}
                   </h3>
                 )}
-                {!storeSettings.shop_name_ta && !storeSettings.shop_name_en && (
-                  <h2 className="text-sm font-bold font-tamil leading-tight">
-                    ரசீது / TAX INVOICE
-                  </h2>
-                )}
+                <div className="mt-1 text-[11px] font-bold border border-black py-0.5 uppercase tracking-wide font-tamil">
+                  {isReturn ? 'RETURN BILL / பொருட்கள் திருப்பல் ரசீது' : isEstimate ? 'ESTIMATE / விற்பனை மதிப்பீடு' : 'TAX INVOICE / வரி விலைப்பட்டியல்'}
+                </div>
                 {(storeSettings.address_ta || storeSettings.address_en) && (
-                  <p className="text-[10px]">{storeSettings.address_ta || storeSettings.address_en}</p>
+                  <p className="text-[10px] mt-0.5">{storeSettings.address_ta || storeSettings.address_en}</p>
                 )}
                 {storeSettings.phone && (
                   <p className="text-[10px] font-semibold">Ph: {storeSettings.phone}</p>
                 )}
-                {storeSettings.gstin && (
+                {!isEstimate && !isReturn && storeSettings.gstin && (
                   <div className="text-[10px] font-mono mt-0.5">
                     <strong>GSTIN:</strong> {storeSettings.gstin} | TN-33
                   </div>
@@ -131,7 +137,9 @@ export default function ReceiptModal({
                     <tr key={idx} className="align-top">
                       <td className="py-0.5 pr-1">
                         <div className="font-bold font-product">{it.name_ta}</div>
-                        <div className="text-[8.5px] text-gray-600 font-mono">HSN:{it.hsn_code} GST:{it.gst_rate}%</div>
+                        <div className="text-[8.5px] text-gray-600 font-mono">
+                          HSN:{it.hsn_code} {!isEstimate && !isReturn ? `GST:${it.gst_rate}%` : isReturn ? '[RETURN]' : ''}
+                        </div>
                       </td>
                       <td className="py-0.5 text-center font-mono">{it.quantity} {it.unit}</td>
                       <td className="py-0.5 text-right font-mono">{Number(it.unit_price).toFixed(2)}</td>
@@ -143,17 +151,19 @@ export default function ReceiptModal({
 
               {/* Totals */}
               <div className="border-t border-dashed border-black pt-1 text-[10.5px] space-y-0.5">
-                <div className="flex justify-between">
-                  <span>வரிக்குட்பட்டது (Taxable):</span>
-                  <span className="font-mono">₹ {Number(invoice.subtotal_taxable).toFixed(2)}</span>
-                </div>
-                {invoice.total_cgst > 0 && (
+                {!isEstimate && !isReturn && (
+                  <div className="flex justify-between">
+                    <span>வரிக்குட்பட்டது (Taxable):</span>
+                    <span className="font-mono">₹ {Number(invoice.subtotal_taxable).toFixed(2)}</span>
+                  </div>
+                )}
+                {!isEstimate && !isReturn && invoice.total_cgst > 0 && (
                   <div className="flex justify-between">
                     <span>CGST (மத்திய வரி):</span>
                     <span className="font-mono">₹ {Number(invoice.total_cgst).toFixed(2)}</span>
                   </div>
                 )}
-                {invoice.total_sgst > 0 && (
+                {!isEstimate && !isReturn && invoice.total_sgst > 0 && (
                   <div className="flex justify-between">
                     <span>SGST (மாநில வரி):</span>
                     <span className="font-mono">₹ {Number(invoice.total_sgst).toFixed(2)}</span>
@@ -167,13 +177,19 @@ export default function ReceiptModal({
                 )}
 
                 <div className="flex justify-between text-sm font-extrabold border-t-2 border-b-2 border-black py-1 my-0.5">
-                  <span>TOTAL (மொத்தம்):</span>
+                  <span>
+                    {isReturn 
+                      ? 'REFUND (திருப்பிய தொகை):' 
+                      : isEstimate 
+                        ? 'ESTIMATE (மதிப்பீட்டுத் தொகை):' 
+                        : 'TOTAL (மொத்தம்):'}
+                  </span>
                   <span>₹ {Number(invoice.grand_total).toFixed(2)}</span>
                 </div>
               </div>
 
-              {/* HSN Summary */}
-              {invoice.hsn_summary && invoice.hsn_summary.length > 0 && (
+              {/* HSN Summary (Only for GST Tax Invoices) */}
+              {!isEstimate && !isReturn && invoice.hsn_summary && invoice.hsn_summary.length > 0 && (
                 <div className="mt-1 pt-1 border-t border-dotted border-black text-[8px]">
                   <table className="w-full text-center border-collapse">
                     <thead>
@@ -201,7 +217,7 @@ export default function ReceiptModal({
               )}
 
               {/* QR Code */}
-              {upiQrUrl && (
+              {!isReturn && upiQrUrl && (
                 <div className="text-center my-1.5 pt-1 border-t border-dashed border-black flex flex-col items-center">
                   <img src={upiQrUrl} alt="UPI QR" className="w-20 h-20 border border-black p-0.5" />
                   <span className="text-[8px] font-bold mt-0.5">Scan to Pay via GPay / PhonePe</span>
@@ -211,7 +227,9 @@ export default function ReceiptModal({
               {/* Footer */}
               <div className="text-center pt-1 border-t border-dashed border-black text-[9px]">
                 <p className="font-bold font-tamil">{storeSettings.receipt_footer_ta || 'நன்றி! மீண்டும் வருக!'}</p>
-                <p className="text-[8px] text-gray-500">GST Tax Invoice</p>
+                <p className="text-[8px] text-gray-500">
+                  {isReturn ? 'Return Receipt - Stock Updated' : isEstimate ? 'Estimate Only - Not a Tax Invoice' : 'GST Tax Invoice'}
+                </p>
               </div>
             </div>
           )}
@@ -225,9 +243,9 @@ export default function ReceiptModal({
                 <div>
                   {storeSettings.shop_name_ta && <h2 className="text-base font-bold font-tamil">{storeSettings.shop_name_ta}</h2>}
                   {storeSettings.shop_name_en && <h1 className="text-sm font-bold">{storeSettings.shop_name_en}</h1>}
-                  {!storeSettings.shop_name_ta && !storeSettings.shop_name_en && (
-                    <h2 className="text-base font-bold font-tamil">ரசீது / TAX INVOICE</h2>
-                  )}
+                  <div className="text-xs font-bold border border-black px-1.5 py-0.5 inline-block uppercase mt-1">
+                    {isReturn ? 'RETURN BILL / பொருட்கள் திருப்பல் ரசீது' : isEstimate ? 'ESTIMATE / விற்பனை மதிப்பீடு' : 'TAX INVOICE / வரி விலைப்பட்டியல்'}
+                  </div>
                   {(storeSettings.address_ta || storeSettings.address_en) && (
                     <p className="text-[11px]">{storeSettings.address_ta || storeSettings.address_en}</p>
                   )}

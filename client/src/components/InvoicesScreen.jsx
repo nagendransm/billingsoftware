@@ -10,6 +10,7 @@ export default function InvoicesScreen({
   const [search, setSearch] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [billTypeFilter, setBillTypeFilter] = useState('');
 
   const fetchInvoices = async () => {
     setLoading(true);
@@ -18,6 +19,7 @@ export default function InvoicesScreen({
       if (search) url += `search=${encodeURIComponent(search)}&`;
       if (startDate) url += `start_date=${startDate}&`;
       if (endDate) url += `end_date=${endDate}&`;
+      if (billTypeFilter) url += `bill_type=${billTypeFilter}&`;
 
       const res = await fetch(url);
       const data = await res.json();
@@ -33,7 +35,7 @@ export default function InvoicesScreen({
 
   useEffect(() => {
     fetchInvoices();
-  }, [startDate, endDate]);
+  }, [startDate, endDate, billTypeFilter]);
 
   const handleCancelInvoice = async (invoiceId) => {
     if (!window.confirm(lang === 'ta' ? 'இந்த ரசீதை ரத்து செய்யவா? சரக்கு இருப்பு திரும்ப சேர்க்கப்படும்.' : 'Cancel this invoice? Stock will be restored.')) return;
@@ -94,6 +96,17 @@ export default function InvoicesScreen({
             className="px-2 py-1 border border-slate-400 rounded focus:outline-none"
           />
 
+          <select
+            value={billTypeFilter}
+            onChange={(e) => setBillTypeFilter(e.target.value)}
+            className="px-2 py-1.5 border border-slate-400 rounded focus:outline-none font-bold bg-white text-xs"
+          >
+            <option value="">{lang === 'ta' ? 'அனைத்து பில்கள் (All)' : 'All Bill Types'}</option>
+            <option value="tax_invoice">{lang === 'ta' ? 'ஜிஎஸ்டி விற்பனை பில் (With Tax)' : 'GST Sales Bill (With Tax)'}</option>
+            <option value="estimate">{lang === 'ta' ? 'விற்பனை மதிப்பீடு (No Tax)' : 'Estimate Bill (No Tax)'}</option>
+            <option value="return_bill">{lang === 'ta' ? 'பொருட்கள் திருப்பல் பில் (Return)' : 'Return Bill (Sales Return)'}</option>
+          </select>
+
           <button
             onClick={fetchInvoices}
             className="px-3 py-1 bg-slate-800 text-white rounded font-bold"
@@ -108,7 +121,7 @@ export default function InvoicesScreen({
         <table className="w-full text-left text-xs border-collapse">
           <thead className="bg-slate-200 text-slate-800 font-bold border-b border-slate-300">
             <tr>
-              <th className="py-2 px-2.5 border-r border-slate-300">{lang === 'ta' ? 'ரசீது எண்' : 'Bill No'}</th>
+              <th className="py-2 px-2.5 border-r border-slate-300">{lang === 'ta' ? 'ரசீது எண் & வகை' : 'Bill No & Type'}</th>
               <th className="py-2 px-2.5 border-r border-slate-300">{lang === 'ta' ? 'தேதி & நேரம்' : 'Date & Time'}</th>
               <th className="py-2 px-2.5 border-r border-slate-300">{lang === 'ta' ? 'வாடிக்கையாளர்' : 'Customer'}</th>
               <th className="py-2 px-2 text-center border-r border-slate-300">{lang === 'ta' ? 'பணம் செலுத்திய முறை' : 'Payment Mode'}</th>
@@ -136,9 +149,31 @@ export default function InvoicesScreen({
             ) : (
               invoices.map(inv => {
                 const isCancelled = inv.payment_status === 'cancelled';
+                const isReturn = inv.bill_type === 'return_bill';
+                const isEstimate = inv.bill_type === 'estimate';
+
                 return (
                   <tr key={inv.id} className={`hover:bg-slate-50 border-b border-slate-200 ${isCancelled ? 'bg-rose-50 text-slate-400 line-through' : ''}`}>
-                    <td className="py-2 px-2.5 font-mono font-bold text-slate-900 border-r border-slate-200">{inv.invoice_no}</td>
+                    <td className="py-2 px-2.5 font-mono font-bold text-slate-900 border-r border-slate-200">
+                      <div className="flex items-center space-x-1">
+                        <span>{inv.invoice_no}</span>
+                        {isReturn && (
+                          <span className="text-[9px] bg-rose-100 text-rose-800 font-bold px-1 py-0.2 rounded border border-rose-300">
+                            {lang === 'ta' ? 'திருப்பல்' : 'RET'}
+                          </span>
+                        )}
+                        {isEstimate && (
+                          <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-1 py-0.2 rounded border border-amber-300">
+                            {lang === 'ta' ? 'மதிப்பீடு' : 'EST'}
+                          </span>
+                        )}
+                        {!isReturn && !isEstimate && (
+                          <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1 py-0.2 rounded border border-emerald-300">
+                            {lang === 'ta' ? 'ஜிஎஸ்டி' : 'GST'}
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="py-2 px-2.5 font-mono text-slate-600 border-r border-slate-200">{inv.date} {inv.time}</td>
                     <td className="py-2 px-2.5 border-r border-slate-200">
                       <div className="font-bold text-slate-900">{inv.customer_name}</div>
@@ -148,7 +183,11 @@ export default function InvoicesScreen({
                     <td className="py-2 px-2 text-right font-mono border-r border-slate-200">₹{Number(inv.subtotal_taxable).toFixed(2)}</td>
                     <td className="py-2 px-2 text-right font-mono border-r border-slate-200">₹{Number(inv.total_cgst).toFixed(2)}</td>
                     <td className="py-2 px-2 text-right font-mono border-r border-slate-200">₹{Number(inv.total_sgst).toFixed(2)}</td>
-                    <td className="py-2 px-2.5 text-right font-mono font-bold text-slate-900 text-sm border-r border-slate-200">₹{Number(inv.grand_total).toFixed(2)}</td>
+                    <td className="py-2 px-2.5 text-right font-mono font-bold border-r border-slate-200">
+                      <span className={`text-sm ${isReturn ? 'text-rose-700' : 'text-slate-900'}`}>
+                        {isReturn ? `(₹${Number(inv.grand_total).toFixed(2)})` : `₹${Number(inv.grand_total).toFixed(2)}`}
+                      </span>
+                    </td>
                     <td className="py-2 px-2 text-center border-r border-slate-200">
                       {isCancelled 
                         ? <span className="text-rose-700 font-bold">{lang === 'ta' ? 'ரத்து' : 'Cancelled'}</span> 

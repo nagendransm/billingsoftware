@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export default function Navbar({ 
   activeTab, 
@@ -9,15 +9,68 @@ export default function Navbar({
   storeSettings = {},
   lowStockCount = 0,
   currentUser = null,
-  onLogout
+  onLogout,
+  billingMode = 'tax_invoice',
+  setBillingMode
 }) {
+  const [showBillingDropdown, setShowBillingDropdown] = useState(false);
+  const billingDropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (billingDropdownRef.current && !billingDropdownRef.current.contains(e.target)) {
+        setShowBillingDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
   const shopName = lang === 'ta' 
     ? (storeSettings.shop_name_ta || storeSettings.shop_name_en || 'மளிகை கடை பில்லிங்') 
     : (storeSettings.shop_name_en || storeSettings.shop_name_ta || 'Grocery Billing POS');
 
+  // Billing Dropdown Options (3 options requested by user)
+  const billingOptions = [
+    {
+      id: 'estimate',
+      labelTa: '1. விற்பனை மதிப்பீடு (வரி இல்லை)',
+      labelEn: '1. Sales Bill (Estimate - No Tax)',
+      descTa: 'வாடிக்கையாளருக்கு வரி இல்லாத மதிப்பீடு பில்',
+      descEn: 'Customer estimate bill without tax',
+      icon: '📝',
+      tag: lang === 'ta' ? 'மதிப்பீடு' : 'Estimate',
+      badgeColor: 'bg-amber-100 text-amber-800 border-amber-300'
+    },
+    {
+      id: 'tax_invoice',
+      labelTa: '2. ஜிஎஸ்டி விற்பனை பில் (வரியுடன்)',
+      labelEn: '2. GST Sales Bill (With Tax)',
+      descTa: 'சரக்கு மற்றும் சேவை வரியுடன் கூடிய விற்பனை பில்',
+      descEn: 'Regular sales bill with GST tax',
+      icon: '🧾',
+      tag: lang === 'ta' ? 'வரியுடன்' : 'GST Tax',
+      badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300'
+    },
+    {
+      id: 'return_bill',
+      labelTa: '3. திருப்பல் பில் (சரக்கு சேர்க்கப்படும்)',
+      labelEn: '3. Return Bill (Sales Return)',
+      descTa: 'பொருட்கள் திரும்பப் பெறல், வரி இல்லை, சரக்கு இருப்பு கூடும்',
+      descEn: 'Customer returns item, no tax, updates stock',
+      icon: '🔄',
+      tag: lang === 'ta' ? 'திருப்பல்' : 'Return',
+      badgeColor: 'bg-rose-100 text-rose-800 border-rose-300'
+    }
+  ];
+
+  // Active Billing Mode Label
+  const currentModeInfo = billingOptions.find(o => o.id === billingMode) || billingOptions[1];
+
   // Concise labels so tabs never consume excessive width
   const navItems = [
-    { id: 'pos', labelTa: 'பில்லிங் (F1)', labelEn: 'Billing (F1)' },
+    { id: 'pos', labelTa: 'பில்லிங் (F1)', labelEn: 'Billing (F1)', isDropdown: true },
     { id: 'products', labelTa: 'பொருட்கள் (F2)', labelEn: 'Items (F2)', badge: lowStockCount > 0 ? lowStockCount : null },
     { id: 'invoices', labelTa: 'விற்பனை (F3)', labelEn: 'Bills (F3)' },
     { id: 'reports', labelTa: 'ஜிஎஸ்டி (F4)', labelEn: 'GST (F4)' },
@@ -31,20 +84,99 @@ export default function Navbar({
     ? navItems.filter(item => item.id === 'pos')
     : navItems;
 
+  const handleSelectBillingOption = (modeId) => {
+    if (setBillingMode) setBillingMode(modeId);
+    setActiveTab('pos');
+    setShowBillingDropdown(false);
+  };
+
   return (
     <header className="no-print bg-slate-900 text-white border-b-2 border-slate-700 select-none flex-shrink-0 w-full">
       <div className="w-full px-2 py-1 flex items-center justify-between gap-1.5 overflow-x-hidden">
         
-
         {/* Center: Compact Navigation Tabs */}
         <nav className="flex items-center space-x-1 flex-shrink-0">
           {visibleNavItems.map(item => {
             const isActive = activeTab === item.id;
             const label = lang === 'ta' ? item.labelTa : item.labelEn;
+
+            if (item.isDropdown) {
+              return (
+                <div key={item.id} ref={billingDropdownRef} className="relative">
+                  <button
+                    onClick={() => {
+                      if (activeTab !== 'pos') {
+                        setActiveTab('pos');
+                      }
+                      setShowBillingDropdown(prev => !prev);
+                    }}
+                    className={`px-2 py-0.5 text-[11px] sm:text-xs font-semibold rounded border transition-colors whitespace-nowrap flex items-center space-x-1 ${
+                      isActive
+                        ? 'bg-emerald-700 text-white border-emerald-500 font-bold shadow-xs'
+                        : 'bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700 hover:text-white'
+                    }`}
+                  >
+                    <span>{label}</span>
+                    <span className="text-[9px] bg-slate-900/60 px-1 py-0.1 rounded font-bold border border-white/20">
+                      {currentModeInfo.tag}
+                    </span>
+                    <span className="text-[10px] ml-0.5 leading-none">▾</span>
+                  </button>
+
+                  {/* Billing Mode Dropdown Menu */}
+                  {showBillingDropdown && (
+                    <div className="absolute left-0 top-full mt-1 w-80 bg-slate-900 border-2 border-emerald-500 rounded-md shadow-2xl z-50 py-1 overflow-hidden animate-fade-in text-slate-200">
+                      <div className="px-3 py-1.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-[11px]">
+                        <span className="font-bold text-white font-tamil">
+                          {lang === 'ta' ? 'பில்லிங் முறையைத் தேர்வு செய்க' : 'Select Billing Type'}
+                        </span>
+                        <span className="text-[10px] text-emerald-400 font-mono font-bold">[F1]</span>
+                      </div>
+
+                      <div className="divide-y divide-slate-800">
+                        {billingOptions.map(opt => {
+                          const isSelected = billingMode === opt.id;
+                          return (
+                            <button
+                              key={opt.id}
+                              onClick={() => handleSelectBillingOption(opt.id)}
+                              className={`w-full text-left px-3 py-2 flex items-start space-x-2.5 transition-colors ${
+                                isSelected
+                                  ? 'bg-emerald-950/70 border-l-4 border-emerald-400 text-white'
+                                  : 'hover:bg-slate-800/90 text-slate-300'
+                              }`}
+                            >
+                              <span className="text-base mt-0.5">{opt.icon}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <div className="font-bold text-xs font-tamil text-white">
+                                    {lang === 'ta' ? opt.labelTa : opt.labelEn}
+                                  </div>
+                                  {isSelected && (
+                                    <span className="text-emerald-400 text-xs font-bold font-mono">✓</span>
+                                  )}
+                                </div>
+                                <div className="text-[10.5px] text-slate-400 font-tamil mt-0.5 leading-tight">
+                                  {lang === 'ta' ? opt.descTa : opt.descEn}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  setShowBillingDropdown(false);
+                }}
                 className={`px-2 py-0.5 text-[11px] sm:text-xs font-semibold rounded border transition-colors whitespace-nowrap ${
                   isActive
                     ? 'bg-emerald-700 text-white border-emerald-500 font-bold shadow-xs'

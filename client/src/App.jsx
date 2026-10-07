@@ -19,6 +19,7 @@ export default function App() {
   const [customers, setCustomers] = useState([]);
   const [activeInvoice, setActiveInvoice] = useState(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+  const [billingMode, setBillingMode] = useState('tax_invoice'); // 'estimate', 'tax_invoice', 'return_bill'
 
   // Authentication State (Admin or User) - default to admin so app never renders blank
   const [currentUser, setCurrentUser] = useState(() => {
@@ -223,6 +224,8 @@ export default function App() {
         lowStockCount={lowStockCount}
         currentUser={currentUser}
         onLogout={handleLogout}
+        billingMode={billingMode}
+        setBillingMode={setBillingMode}
       />
 
       {/* Main Tab Screen Content */}
@@ -235,6 +238,8 @@ export default function App() {
             lang={lang}
             t={t}
             onInvoiceCreated={handleInvoiceCreated}
+            billingMode={billingMode}
+            setBillingMode={setBillingMode}
           />
         )}
 
