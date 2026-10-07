@@ -118,7 +118,7 @@ export default function App() {
     const titleName = lang === 'ta'
       ? (storeSettings.shop_name_ta || storeSettings.shop_name_en || 'மளிகை கடை பில்லிங்')
       : (storeSettings.shop_name_en || storeSettings.shop_name_ta || 'Grocery Billing POS');
-    document.title = `${titleName} - GST Billing POS (TN-33)`;
+    document.title = titleName;
   }, [storeSettings, lang]);
 
   // Tab Hotkeys (F1 to F6) - Bulletproof with capture phase & role check

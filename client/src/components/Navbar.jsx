@@ -35,26 +35,15 @@ export default function Navbar({
     <header className="no-print bg-slate-900 text-white border-b-2 border-slate-700 select-none flex-shrink-0 w-full">
       <div className="w-full px-2 py-1 flex items-center justify-between gap-1.5 overflow-x-hidden">
         
-        {/* Left: Shop Identity (auto-adapting, max width constrained) */}
+        {/* Left: Shop Name Only (Enlarged tab, shop name only, no other text) */}
         <div 
-          className="flex items-center space-x-1.5 cursor-pointer flex-shrink min-w-0 max-w-[280px] xl:max-w-[340px]"
+          className="flex items-center cursor-pointer flex-shrink-0 px-3 py-1.5 bg-slate-800/90 border border-slate-600 hover:border-emerald-500 rounded-md shadow-xs transition-colors"
           onClick={() => setActiveTab('pos')}
           title={shopName}
         >
-          <div className="bg-emerald-600 text-white font-bold text-[11px] px-1.5 py-0.5 rounded font-mono shadow-xs flex-shrink-0">
-            POS
-          </div>
-          <div className="min-w-0 flex flex-col">
-            <h1 className="text-xs sm:text-sm font-bold text-white font-tamil truncate leading-tight">
-              {shopName}
-            </h1>
-            <div className="text-[10px] text-slate-300 font-mono flex items-center space-x-1 leading-tight truncate">
-              {storeSettings.phone && (
-                <span>Ph:{storeSettings.phone}</span>
-              )}
-              <span className="text-emerald-400 font-semibold">[33 TN]</span>
-            </div>
-          </div>
+          <h1 className="text-base sm:text-lg font-bold text-white font-tamil tracking-wide whitespace-nowrap leading-none">
+            {shopName}
+          </h1>
         </div>
 
         {/* Center: Compact Navigation Tabs */}

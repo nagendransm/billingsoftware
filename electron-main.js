@@ -43,7 +43,7 @@ function createWindow() {
     height: 900,
     minWidth: 1024,
     minHeight: 700,
-    title: 'தமிழ்நாடு மளிகை ஜிஎஸ்டி பில்லிங் - Tamil Nadu Grocery GST Billing POS',
+    title: 'தமிழ்நாடு மளிகை ஜிஎஸ்டி பில்லிங்',
     icon: path.join(__dirname, 'app.ico'),
     autoHideMenuBar: true,
     backgroundColor: '#064e3b',
