@@ -98,13 +98,13 @@ export default function CustomersScreen({
       {/* Top Header */}
       <div className="bg-white p-2.5 rounded border border-slate-300 flex justify-between items-center">
         <h2 className="font-bold text-sm sm:text-base text-slate-900 font-tamil">
-          வாடிக்கையாளர் கடன் கணக்கு (Credit Ledger)
+          {lang === 'ta' ? 'வாடிக்கையாளர் கடன் கணக்கு' : 'Customer Credit Ledger'}
         </h2>
         <button
           onClick={() => setIsAddModalOpen(true)}
           className="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded font-bold"
         >
-          + புதிய வாடிக்கையாளர் சேர்க்க
+          {lang === 'ta' ? '+ புதிய வாடிக்கையாளர் சேர்க்க' : '+ Add New Customer'}
         </button>
       </div>
 
@@ -160,7 +160,7 @@ export default function CustomersScreen({
 
                 <div className="flex items-center space-x-3">
                   <div className="text-right">
-                    <span className="text-slate-600 block text-[11px] font-tamil">கடன் பாக்கி:</span>
+                    <span className="text-slate-600 block text-[11px]">{lang === 'ta' ? 'கடன் பாக்கி:' : 'Credit Balance:'}</span>
                     <span className="text-lg font-bold font-mono text-rose-700">
                       ₹ {selectedCustomer.credit_balance}
                     </span>
@@ -170,7 +170,7 @@ export default function CustomersScreen({
                     onClick={() => setIsPayModalOpen(true)}
                     className="px-3 py-1 bg-emerald-700 text-white rounded font-bold"
                   >
-                    வரவு வைக்க (Pay)
+                    {lang === 'ta' ? 'வரவு வைக்க (Pay)' : 'Record Payment'}
                   </button>
                 </div>
               </div>
@@ -180,11 +180,11 @@ export default function CustomersScreen({
                 <table className="w-full text-left text-xs border-collapse">
                   <thead className="bg-slate-200 font-bold border-b border-slate-300">
                     <tr>
-                      <th className="py-2 px-2.5 border-r border-slate-300">தேதி</th>
-                      <th className="py-2 px-2.5 border-r border-slate-300">வகை</th>
-                      <th className="py-2 px-2.5 border-r border-slate-300">விளக்கம்</th>
-                      <th className="py-2 px-2.5 text-right border-r border-slate-300">பற்று (Debit ₹)</th>
-                      <th className="py-2 px-2.5 text-right">வரவு (Credit ₹)</th>
+                      <th className="py-2 px-2.5 border-r border-slate-300">{lang === 'ta' ? 'தேதி' : 'Date'}</th>
+                      <th className="py-2 px-2.5 border-r border-slate-300">{lang === 'ta' ? 'வகை' : 'Type'}</th>
+                      <th className="py-2 px-2.5 border-r border-slate-300">{lang === 'ta' ? 'விளக்கம்' : 'Description'}</th>
+                      <th className="py-2 px-2.5 text-right border-r border-slate-300">{lang === 'ta' ? 'பற்று (Debit ₹)' : 'Debit (₹)'}</th>
+                      <th className="py-2 px-2.5 text-right">{lang === 'ta' ? 'வரவு (Credit ₹)' : 'Credit (₹)'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 font-medium">
@@ -193,9 +193,11 @@ export default function CustomersScreen({
                         <tr key={idx} className="hover:bg-slate-50 border-b border-slate-200">
                           <td className="py-2 px-2.5 font-mono text-slate-600 border-r border-slate-200">{tx.date}</td>
                           <td className="py-2 px-2.5 border-r border-slate-200 font-bold">
-                            {tx.type === 'debit' ? <span className="text-rose-700">பில் கடன்</span> : <span className="text-emerald-700">பணம் பெற்றது</span>}
+                            {tx.type === 'debit' 
+                              ? <span className="text-rose-700">{lang === 'ta' ? 'பில் கடன்' : 'Bill Debit'}</span> 
+                              : <span className="text-emerald-700">{lang === 'ta' ? 'பணம் பெற்றது' : 'Payment Received'}</span>}
                           </td>
-                          <td className="py-2 px-2.5 border-r border-slate-200 font-tamil">{tx.notes}</td>
+                          <td className="py-2 px-2.5 border-r border-slate-200">{tx.notes}</td>
                           <td className="py-2 px-2.5 text-right font-mono font-bold text-rose-700 border-r border-slate-200">
                             {tx.type === 'debit' ? `₹ ${tx.amount}` : '-'}
                           </td>
@@ -206,7 +208,9 @@ export default function CustomersScreen({
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="5" className="py-8 text-center text-slate-400">பரிவர்த்தனைகள் எதுவும் இல்லை</td>
+                        <td colSpan="5" className="py-8 text-center text-slate-400">
+                          {lang === 'ta' ? 'பரிவர்த்தனைகள் எதுவும் இல்லை' : 'No transactions recorded'}
+                        </td>
                       </tr>
                     )}
                   </tbody>
@@ -214,8 +218,8 @@ export default function CustomersScreen({
               </div>
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center text-slate-400 font-tamil text-center">
-              வாடிக்கையாளரைத் தேர்வு செய்து கடன் பதிவேட்டைப் பார்க்கவும்
+            <div className="h-full flex items-center justify-center text-slate-400 text-center">
+              {lang === 'ta' ? 'வாடிக்கையாளரைத் தேர்வு செய்து கடன் பதிவேட்டைப் பார்க்கவும்' : 'Select a customer to view their credit ledger'}
             </div>
           )}
         </div>

@@ -287,17 +287,19 @@ export default function App() {
       {/* Bottom Status Bar */}
       <footer className="no-print bg-slate-900 text-slate-300 px-3 py-1 border-t border-slate-700 text-[10px] sm:text-[11px] flex flex-wrap items-center justify-between gap-1 font-mono flex-shrink-0">
         <div className="flex items-center space-x-2">
-          <span className="font-bold text-emerald-400">குறுக்குவழிகள்:</span>
-          <span>[F1: பில்லிங்]</span>
-          <span>[F2: புதிய பில்]</span>
-          <span>[F4: தேடுதல்]</span>
-          <span>[F8: சேமி]</span>
-          <span>[F9: அச்சிடு]</span>
-          <span>[F10: நிறுத்து]</span>
+          <span className="font-bold text-emerald-400">{lang === 'ta' ? 'குறுக்குவழிகள்:' : 'Shortcuts:'}</span>
+          <span>{lang === 'ta' ? '[F1: பில்லிங்]' : '[F1: Billing]'}</span>
+          <span>{lang === 'ta' ? '[F2: புதிய பில்]' : '[F2: New Bill]'}</span>
+          <span>{lang === 'ta' ? '[F4: தேடுதல்]' : '[F4: Search]'}</span>
+          <span>{lang === 'ta' ? '[F8: சேமி]' : '[F8: Save]'}</span>
+          <span>{lang === 'ta' ? '[F9: அச்சிடு]' : '[F9: Print]'}</span>
+          <span>{lang === 'ta' ? '[F10: நிறுத்து]' : '[F10: Hold]'}</span>
         </div>
 
-        <div className="text-slate-400 font-tamil">
-          தமிழ்நாடு ஜிஎஸ்டி (State Code: 33) | ஆஃப்லைன் பில்லிங் மென்பொருள்
+        <div className="text-slate-400 font-sans">
+          {lang === 'ta'
+            ? 'தமிழ்நாடு ஜிஎஸ்டி (State Code: 33) | ஆஃப்லைன் பில்லிங் மென்பொருள்'
+            : 'Tamil Nadu GST (State Code: 33) | Offline POS Billing Software'}
         </div>
       </footer>
 

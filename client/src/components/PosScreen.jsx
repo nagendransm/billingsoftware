@@ -937,7 +937,7 @@ export default function PosScreen({
                 : `Viewing Past Bill #${viewingPastBill.invoice_no} | Date: ${viewingPastBill.date} ${viewingPastBill.time} | Mode: ${viewingPastBill.payment_mode?.toUpperCase()}`}
             </span>
             <span className="text-amber-800 font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-amber-300">
-              [↑ பழைய பில் | ↓ அடுத்த பில் | F2 புதிய பில்]
+              {lang === 'ta' ? '[↑ பழைய பில் | ↓ அடுத்த பில் | F2 புதிய பில்]' : '[↑ Older Bill | ↓ Newer Bill | F2 New Bill]'}
             </span>
           </div>
           <div className="flex items-center space-x-1.5">
@@ -1042,7 +1042,9 @@ export default function PosScreen({
                       ? (lang === 'ta' ? `அனைத்து பொருட்கள் (${searchResults.length} - அகர வரிசை A-Z)` : `All Products (${searchResults.length} - Alphabetical A-Z)`)
                       : (lang === 'ta' ? `தேடல் முடிவுகள் (${searchResults.length})` : `Search Results (${searchResults.length})`)}
                   </span>
-                  <span className="text-[10px] text-slate-500 font-mono">[↑↓ நகர்த்த | Enter தேர்வு]</span>
+                  <span className="text-[10px] text-slate-500 font-mono">
+                    {lang === 'ta' ? '[↑↓ நகர்த்த | Enter தேர்வு]' : '[↑↓ Move | Enter Select]'}
+                  </span>
                 </div>
 
                 {searchResults.map((item, idx) => {
@@ -1096,7 +1098,7 @@ export default function PosScreen({
                   handleAddItemToBill();
                 }
               }}
-              placeholder="Qty / அளவு"
+              placeholder={lang === 'ta' ? 'அளவு' : 'Qty'}
               className="w-full px-2 py-1 border border-slate-400 rounded text-xs text-center font-bold font-mono focus:border-emerald-600 focus:outline-none"
             />
           </div>
@@ -1114,7 +1116,7 @@ export default function PosScreen({
                   handleAddItemToBill();
                 }
               }}
-              placeholder="Rate / விலை"
+              placeholder={lang === 'ta' ? 'விலை' : 'Rate'}
               className="w-full px-2 py-1 border border-slate-400 rounded text-xs text-right font-bold font-mono focus:border-emerald-600 focus:outline-none"
             />
           </div>
@@ -1159,11 +1161,11 @@ export default function PosScreen({
               <tr>
                 <th className="py-1 px-2 text-center w-10 border-r border-slate-300">#</th>
                 <th className="py-1 px-2.5 text-left border-r border-slate-300">
-                  {lang === 'ta' ? 'பொருள் விளக்கம் (Item Name)' : 'Item Description'}
+                  {lang === 'ta' ? 'பொருள் விளக்கம்' : 'Item Description'}
                 </th>
                 <th className="py-1 px-2 text-center w-16 border-r border-slate-300">HSN</th>
                 <th className="py-1 px-2 text-center w-24 border-r border-slate-300">
-                  {lang === 'ta' ? 'அளவு (Qty)' : 'Quantity'}
+                  {lang === 'ta' ? 'அளவு' : 'Quantity'}
                 </th>
                 <th className="py-1 px-2 text-right w-20 border-r border-slate-300">
                   {lang === 'ta' ? 'விலை (₹)' : 'Rate (₹)'}
@@ -1222,12 +1224,12 @@ export default function PosScreen({
                 ))
               ) : cart.length === 0 ? (
                 <tr>
-                  <td colSpan="10" className="py-8 text-center text-slate-400 font-tamil">
-                    பில்லில் பொருட்கள் இல்லை. பார்கோடு ஸ்கேன் செய்யவும் அல்லது பொருள் பெயரைத் தட்டச்சு செய்யவும் [F4].
-                    <br />
-                    <span className="text-[11px] font-mono text-slate-500 mt-1 block">
-                      (No items added yet. Scan barcode or type above to add items)
-                    </span>
+                  <td colSpan="10" className="py-8 text-center text-slate-400">
+                    {lang === 'ta' ? (
+                      <span className="font-tamil">பில்லில் பொருட்கள் இல்லை. பார்கோடு ஸ்கேன் செய்யவும் அல்லது பொருள் பெயரைத் தட்டச்சு செய்யவும் [F4].</span>
+                    ) : (
+                      <span>No items added to bill yet. Scan barcode or type item name above [F4].</span>
+                    )}
                   </td>
                 </tr>
               ) : (
@@ -1367,7 +1369,9 @@ export default function PosScreen({
               {paymentMode === 'cash' && (
                 <div className="flex items-center space-x-2 bg-slate-50 p-1.5 rounded border border-slate-200 text-xs">
                   <div className="flex items-center space-x-1.5">
-                    <span className="text-slate-600 font-semibold font-tamil">பெற்ற தொகை:</span>
+                    <span className="text-slate-600 font-semibold font-tamil">
+                      {lang === 'ta' ? 'பெற்ற தொகை:' : 'Received:'}
+                    </span>
                     <input
                       type="number"
                       value={cashReceived}
@@ -1379,7 +1383,8 @@ export default function PosScreen({
 
                   {cashChange > 0 && (
                     <div className="text-emerald-800 font-bold ml-auto">
-                      மீதி: <span className="font-mono text-sm underline">₹ {cashChange}</span>
+                      <span>{lang === 'ta' ? 'மீதி:' : 'Change:'} </span>
+                      <span className="font-mono text-sm underline">₹ {cashChange}</span>
                     </div>
                   )}
                 </div>
@@ -1390,7 +1395,9 @@ export default function PosScreen({
                 <div className="flex items-center space-x-2 bg-slate-50 p-1.5 rounded border border-slate-200">
                   <img src={liveUpiUrl} alt="UPI QR" className="w-12 h-12 border border-slate-400 bg-white" />
                   <div>
-                    <span className="font-bold text-slate-900 font-tamil block text-xs">ஸ்கேன் செய்து செலுத்தவும்</span>
+                    <span className="font-bold text-slate-900 font-tamil block text-xs">
+                      {lang === 'ta' ? 'ஸ்கேன் செய்து செலுத்தவும்' : 'Scan to pay via UPI'}
+                    </span>
                     <span className="font-mono text-emerald-800 font-bold text-sm">₹ {displaySummary.grandTotal}</span>
                   </div>
                 </div>
@@ -1693,7 +1700,7 @@ export default function PosScreen({
               </div>
               <div className="flex items-center space-x-3">
                 <span className="text-[10px] text-slate-500">
-                  ↑ / ↓: ரசீதை தேர்வு செய்ய | Enter: பில்லை திறக்க | Esc: வெளியேற
+                  {lang === 'ta' ? '↑ / ↓: ரசீதை தேர்வு செய்ய | Enter: பில்லை திறக்க | Esc: வெளியேற' : '↑ / ↓: Select | Enter: Open Bill | Esc: Exit'}
                 </span>
                 {(searchDate || searchBillNo || searchCustomer) && (
                   <button
@@ -1714,23 +1721,23 @@ export default function PosScreen({
             {/* Invoices Results Table with Keyboard Arrow Selection */}
             <div className="flex-1 overflow-y-auto p-2 bg-slate-50 min-h-[240px]">
               {loadingModalInvoices ? (
-                <div className="text-center py-10 text-slate-500 font-tamil font-bold">
-                  தேடப்படுகிறது... (Searching...)
+                <div className="text-center py-10 text-slate-500 font-bold">
+                  {lang === 'ta' ? 'தேடப்படுகிறது...' : 'Searching...'}
                 </div>
               ) : modalInvoices.length === 0 ? (
-                <div className="text-center py-10 text-slate-500 font-tamil">
-                  ரசீதுகள் எதுவும் கிடைக்கவில்லை (No matching invoices found).
+                <div className="text-center py-10 text-slate-500">
+                  {lang === 'ta' ? 'ரசீதுகள் எதுவும் கிடைக்கவில்லை' : 'No matching invoices found'}
                 </div>
               ) : (
                 <table className="w-full text-left text-xs bg-white rounded border border-slate-200 shadow-2xs divide-y divide-slate-200">
                   <thead className="bg-slate-100 font-bold text-slate-700 text-[11px]">
                     <tr>
-                      <th className="py-2 px-2.5 border-r border-slate-200">ரசீது எண் (Bill No)</th>
-                      <th className="py-2 px-2 border-r border-slate-200">தேதி / நேரம் (Date/Time)</th>
-                      <th className="py-2 px-2.5 border-r border-slate-200">வாடிக்கையாளர் (Customer)</th>
-                      <th className="py-2 px-2 border-r border-slate-200 text-center">முறை (Mode)</th>
-                      <th className="py-2 px-2.5 border-r border-slate-200 text-right">மொத்தம் (Total)</th>
-                      <th className="py-2 px-2 text-center">செயல் (Action)</th>
+                      <th className="py-2 px-2.5 border-r border-slate-200">{lang === 'ta' ? 'ரசீது எண்' : 'Bill No'}</th>
+                      <th className="py-2 px-2 border-r border-slate-200">{lang === 'ta' ? 'தேதி / நேரம்' : 'Date / Time'}</th>
+                      <th className="py-2 px-2.5 border-r border-slate-200">{lang === 'ta' ? 'வாடிக்கையாளர்' : 'Customer'}</th>
+                      <th className="py-2 px-2 border-r border-slate-200 text-center">{lang === 'ta' ? 'முறை' : 'Mode'}</th>
+                      <th className="py-2 px-2.5 border-r border-slate-200 text-right">{lang === 'ta' ? 'மொத்தம்' : 'Total'}</th>
+                      <th className="py-2 px-2 text-center">{lang === 'ta' ? 'செயல்' : 'Action'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium">
@@ -1776,7 +1783,7 @@ export default function PosScreen({
                               onClick={() => loadSpecificInvoice(inv.id)}
                               className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded font-bold text-[11px] shadow-2xs font-tamil flex items-center justify-center space-x-1 mx-auto"
                             >
-                              <span>பார்வை [View]</span>
+                              <span>{lang === 'ta' ? 'பார்வை' : 'View'}</span>
                             </button>
                           </td>
                         </tr>
@@ -1790,13 +1797,13 @@ export default function PosScreen({
             {/* Modal Footer */}
             <div className="bg-slate-100 px-4 py-2 border-t border-slate-300 flex items-center justify-between text-xs text-slate-600">
               <span className="font-mono text-[11px]">
-                ↑ / ↓: வரிசை தேர்வு | Enter: ரசீதை திறக்க | Esc: மூட
+                {lang === 'ta' ? '↑ / ↓: வரிசை தேர்வு | Enter: ரசீதை திறக்க | Esc: மூட' : '↑ / ↓: Navigate | Enter: Open Bill | Esc: Close'}
               </span>
               <button
                 onClick={() => setShowSearchModal(false)}
-                className="px-3 py-1 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded font-tamil"
+                className="px-3 py-1 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded"
               >
-                ✕ மூடு [Esc]
+                ✕ {lang === 'ta' ? 'மூடு [Esc]' : 'Close [Esc]'}
               </button>
             </div>
 

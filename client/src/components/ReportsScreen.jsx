@@ -84,28 +84,28 @@ export default function ReportsScreen({
       {dashboard && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <div className="bg-white p-2.5 rounded border border-slate-300">
-            <div className="text-slate-600 font-tamil">இன்றைய மொத்த விற்பனை</div>
+            <div className="text-slate-600">{lang === 'ta' ? 'இன்றைய மொத்த விற்பனை' : 'Today Sales'}</div>
             <div className="text-xl font-bold font-mono text-slate-900 mt-0.5">
               ₹ {Number(dashboard.today.total_sales).toFixed(2)}
             </div>
           </div>
 
           <div className="bg-white p-2.5 rounded border border-slate-300">
-            <div className="text-slate-600 font-tamil">இன்றைய ரசீதுகள்</div>
+            <div className="text-slate-600">{lang === 'ta' ? 'இன்றைய ரசீதுகள்' : 'Today Bills'}</div>
             <div className="text-xl font-bold font-mono text-slate-900 mt-0.5">
               {dashboard.today.total_bills}
             </div>
           </div>
 
           <div className="bg-white p-2.5 rounded border border-slate-300">
-            <div className="text-slate-600 font-tamil">வசூலான ஜிஎஸ்டி வரி</div>
+            <div className="text-slate-600">{lang === 'ta' ? 'வசூலான ஜிஎஸ்டி வரி' : 'GST Collected'}</div>
             <div className="text-xl font-bold font-mono text-slate-900 mt-0.5">
               ₹ {Number(dashboard.today.total_cgst + dashboard.today.total_sgst).toFixed(2)}
             </div>
           </div>
 
           <div className="bg-white p-2.5 rounded border border-slate-300">
-            <div className="text-slate-600 font-tamil">குறைந்த இருப்பு பொருட்கள்</div>
+            <div className="text-slate-600">{lang === 'ta' ? 'குறைந்த இருப்பு பொருட்கள்' : 'Low Stock Items'}</div>
             <div className="text-xl font-bold font-mono text-rose-700 mt-0.5">
               {dashboard.lowStockCount}
             </div>
@@ -124,7 +124,7 @@ export default function ReportsScreen({
                 : 'bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200'
             }`}
           >
-            GSTR-1 மாத அறிக்கை
+            {lang === 'ta' ? 'GSTR-1 மாத அறிக்கை' : 'GSTR-1 Monthly Report'}
           </button>
 
           <button
@@ -135,7 +135,7 @@ export default function ReportsScreen({
                 : 'bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200'
             }`}
           >
-            தினசரி விற்பனை பதிவேடு
+            {lang === 'ta' ? 'தினசரி விற்பனை பதிவேடு' : 'Daily Sales Register'}
           </button>
         </div>
 
@@ -184,24 +184,24 @@ export default function ReportsScreen({
           {/* Table 7: B2CS Summary */}
           <div className="bg-white rounded border border-slate-300 overflow-hidden">
             <div className="p-2 bg-slate-100 border-b border-slate-300 flex justify-between items-center font-bold">
-              <span>அட்டவணை 7: B2C சில்லறை விற்பனை அறிக்கை (Table 7 B2CS Summary)</span>
+              <span>{lang === 'ta' ? 'அட்டவணை 7: B2C சில்லறை விற்பனை அறிக்கை' : 'Table 7: B2C Retail Sales'}</span>
               <button
                 onClick={() => exportToCsv(`GSTR1_Table7_${selectedMonth}_${selectedYear}`, gstr1Data.table7_b2cs)}
                 className="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-0.5 rounded border border-slate-400"
               >
-                [Excel / CSV பதிவிறக்கம்]
+                {lang === 'ta' ? '[Excel / CSV பதிவிறக்கம்]' : '[Download Excel / CSV]'}
               </button>
             </div>
 
             <table className="w-full text-left text-xs border-collapse">
               <thead className="bg-slate-200 font-bold border-b border-slate-300">
                 <tr>
-                  <th className="py-2 px-3 border-r border-slate-300">வரி விகிதம் (GST Rate)</th>
-                  <th className="py-2 px-3 border-r border-slate-300">சப்ளை செய்யும் இடம் (POS)</th>
-                  <th className="py-2 px-3 text-right border-r border-slate-300">வரிக்குட்பட்ட தொகை (₹)</th>
-                  <th className="py-2 px-3 text-right border-r border-slate-300">மத்திய வரி CGST (₹)</th>
-                  <th className="py-2 px-3 text-right border-r border-slate-300">மாநில வரி SGST (₹)</th>
-                  <th className="py-2 px-3 text-right">மொத்த ரசீது மதிப்பு (₹)</th>
+                  <th className="py-2 px-3 border-r border-slate-300">{lang === 'ta' ? 'வரி விகிதம்' : 'GST Rate'}</th>
+                  <th className="py-2 px-3 border-r border-slate-300">{lang === 'ta' ? 'சப்ளை செய்யும் இடம்' : 'Place of Supply'}</th>
+                  <th className="py-2 px-3 text-right border-r border-slate-300">{lang === 'ta' ? 'வரிக்குட்பட்ட தொகை (₹)' : 'Taxable (₹)'}</th>
+                  <th className="py-2 px-3 text-right border-r border-slate-300">CGST (₹)</th>
+                  <th className="py-2 px-3 text-right border-r border-slate-300">SGST (₹)</th>
+                  <th className="py-2 px-3 text-right">{lang === 'ta' ? 'மொத்த ரசீது மதிப்பு (₹)' : 'Total Value (₹)'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 font-medium">
@@ -218,7 +218,9 @@ export default function ReportsScreen({
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="py-6 text-center text-slate-400">தகவல்கள் எதுவும் இல்லை</td>
+                    <td colSpan="6" className="py-6 text-center text-slate-400">
+                      {lang === 'ta' ? 'தகவல்கள் எதுவும் இல்லை' : 'No records found'}
+                    </td>
                   </tr>
                 )}
               </tbody>
@@ -228,27 +230,27 @@ export default function ReportsScreen({
           {/* Table 12: HSN Summary */}
           <div className="bg-white rounded border border-slate-300 overflow-hidden">
             <div className="p-2 bg-slate-100 border-b border-slate-300 flex justify-between items-center font-bold">
-              <span>அட்டவணை 12: HSN குறியீடு வாரியான விற்பனை அறிக்கை (Table 12 HSN Summary)</span>
+              <span>{lang === 'ta' ? 'அட்டவணை 12: HSN குறியீடு வாரியான விற்பனை அறிக்கை' : 'Table 12: HSN Summary'}</span>
               <button
                 onClick={() => exportToCsv(`GSTR1_Table12_HSN_${selectedMonth}_${selectedYear}`, gstr1Data.table12_hsn)}
                 className="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-0.5 rounded border border-slate-400"
               >
-                [Excel / CSV பதிவிறக்கம்]
+                {lang === 'ta' ? '[Excel / CSV பதிவிறக்கம்]' : '[Download Excel / CSV]'}
               </button>
             </div>
 
             <table className="w-full text-left text-xs border-collapse">
               <thead className="bg-slate-200 font-bold border-b border-slate-300">
                 <tr>
-                  <th className="py-2 px-2.5 border-r border-slate-300">HSN குறியீடு</th>
-                  <th className="py-2 px-2.5 border-r border-slate-300">விளக்கம் (Description)</th>
-                  <th className="py-2 px-2 text-center border-r border-slate-300">அலகு</th>
-                  <th className="py-2 px-2 text-center border-r border-slate-300">அளவு</th>
+                  <th className="py-2 px-2.5 border-r border-slate-300">{lang === 'ta' ? 'HSN குறியீடு' : 'HSN'}</th>
+                  <th className="py-2 px-2.5 border-r border-slate-300">{lang === 'ta' ? 'பொருள் விளக்கம்' : 'Description'}</th>
+                  <th className="py-2 px-2 text-center border-r border-slate-300">{lang === 'ta' ? 'அலகு' : 'Unit'}</th>
+                  <th className="py-2 px-2 text-center border-r border-slate-300">{lang === 'ta' ? 'அளவு' : 'Quantity'}</th>
                   <th className="py-2 px-2 text-center border-r border-slate-300">GST %</th>
-                  <th className="py-2 px-2 text-right border-r border-slate-300">வரிக்குட்பட்டது (₹)</th>
+                  <th className="py-2 px-2 text-right border-r border-slate-300">{lang === 'ta' ? 'வரிக்குட்பட்டது (₹)' : 'Taxable (₹)'}</th>
                   <th className="py-2 px-2 text-right border-r border-slate-300">CGST (₹)</th>
                   <th className="py-2 px-2 text-right border-r border-slate-300">SGST (₹)</th>
-                  <th className="py-2 px-2.5 text-right">மொத்த மதிப்பு (₹)</th>
+                  <th className="py-2 px-2.5 text-right">{lang === 'ta' ? 'மொத்த மதிப்பு (₹)' : 'Total (₹)'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 font-medium">
@@ -257,8 +259,10 @@ export default function ReportsScreen({
                     <tr key={idx} className="hover:bg-slate-50 border-b border-slate-200">
                       <td className="py-2 px-2.5 font-mono font-bold border-r border-slate-200">{row.hsn_code}</td>
                       <td className="py-2 px-2.5 border-r border-slate-200">
-                        <div className="font-bold font-product">{row.description_ta}</div>
-                        <div className="text-[10px] text-slate-500">{row.description_en}</div>
+                        <div className="font-bold font-product">{row.description_ta || row.description_en}</div>
+                        {row.description_en && (
+                          <div className="text-[10px] text-slate-500">{row.description_en}</div>
+                        )}
                       </td>
                       <td className="py-2 px-2 text-center font-mono border-r border-slate-200">{row.uqc}</td>
                       <td className="py-2 px-2 text-center font-mono font-bold border-r border-slate-200">{row.total_quantity}</td>
@@ -271,7 +275,9 @@ export default function ReportsScreen({
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="9" className="py-6 text-center text-slate-400">தகவல்கள் எதுவும் இல்லை</td>
+                    <td colSpan="9" className="py-6 text-center text-slate-400">
+                      {lang === 'ta' ? 'தகவல்கள் எதுவும் இல்லை' : 'No records found'}
+                    </td>
                   </tr>
                 )}
               </tbody>
@@ -285,25 +291,25 @@ export default function ReportsScreen({
       {activeReportTab === 'daily' && (
         <div className="bg-white rounded border border-slate-300 overflow-hidden">
           <div className="p-2 bg-slate-100 border-b border-slate-300 flex justify-between items-center font-bold">
-            <span>தினசரி விற்பனை மற்றும் வரி பதிவேடு</span>
+            <span>{lang === 'ta' ? 'தினசரி விற்பனை மற்றும் வரி பதிவேடு' : 'Daily Sales & Tax Register'}</span>
             <button
               onClick={() => exportToCsv('Daily_Register', dailyData)}
               className="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-0.5 rounded border border-slate-400"
             >
-              [Excel / CSV பதிவிறக்கம்]
+              {lang === 'ta' ? '[Excel / CSV பதிவிறக்கம்]' : '[Download Excel / CSV]'}
             </button>
           </div>
 
           <table className="w-full text-left text-xs border-collapse">
             <thead className="bg-slate-200 font-bold border-b border-slate-300">
               <tr>
-                <th className="py-2 px-3 border-r border-slate-300">தேதி (Date)</th>
-                <th className="py-2 px-3 text-center border-r border-slate-300">ரசீதுகள்</th>
-                <th className="py-2 px-3 text-right border-r border-slate-300">வரிக்குட்பட்டது (₹)</th>
+                <th className="py-2 px-3 border-r border-slate-300">{lang === 'ta' ? 'தேதி' : 'Date'}</th>
+                <th className="py-2 px-3 text-center border-r border-slate-300">{lang === 'ta' ? 'ரசீதுகள்' : 'Bills'}</th>
+                <th className="py-2 px-3 text-right border-r border-slate-300">{lang === 'ta' ? 'வரிக்குட்பட்டது (₹)' : 'Taxable (₹)'}</th>
                 <th className="py-2 px-3 text-right border-r border-slate-300">CGST (₹)</th>
                 <th className="py-2 px-3 text-right border-r border-slate-300">SGST (₹)</th>
-                <th className="py-2 px-3 text-right border-r border-slate-300">மொத்த வரி (₹)</th>
-                <th className="py-2 px-3 text-right">விற்பனை தொகை (₹)</th>
+                <th className="py-2 px-3 text-right border-r border-slate-300">{lang === 'ta' ? 'மொத்த வரி (₹)' : 'Total Tax (₹)'}</th>
+                <th className="py-2 px-3 text-right">{lang === 'ta' ? 'விற்பனை தொகை (₹)' : 'Sales (₹)'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 font-medium">

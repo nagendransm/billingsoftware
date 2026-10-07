@@ -67,10 +67,12 @@ export default function SettingsScreen({
       <div className="bg-white p-3 rounded border border-slate-300 flex justify-between items-center">
         <div>
           <h2 className="font-bold text-sm sm:text-base text-slate-900 font-tamil">
-            கடை அமைப்புகள் & ஜிஎஸ்டி விபரங்கள் (Store Profile & Settings)
+            {lang === 'ta' ? 'கடை அமைப்புகள் & ஜிஎஸ்டி விபரங்கள்' : 'Store Profile & GST Settings'}
           </h2>
-          <p className="text-[11px] text-slate-500 font-tamil mt-0.5">
-            உங்கள் கடையின் பெயர், முகவரி மற்றும் ஜிஎஸ்டி விபரங்களை இங்கு பதிவிடவும். இவை ரசீதுகளில் அச்சிடப்படும்.
+          <p className="text-[11px] text-slate-500 mt-0.5">
+            {lang === 'ta' 
+              ? 'உங்கள் கடையின் பெயர், முகவரி மற்றும் ஜிஎஸ்டி விபரங்களை இங்கு பதிவிடவும். இவை ரசீதுகளில் அச்சிடப்படும்.' 
+              : 'Enter your store name, address, and GST details here. These will be printed on invoices.'}
           </p>
         </div>
         {msg && <span className="font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">{msg}</span>}
@@ -80,7 +82,9 @@ export default function SettingsScreen({
         
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="font-bold block mb-1 font-tamil">கடையின் பெயர் (தமிழில்) *</label>
+            <label className="font-bold block mb-1 font-tamil">
+              {lang === 'ta' ? 'கடையின் பெயர் (தமிழில்) *' : 'Shop Name (Tamil) *'}
+            </label>
             <input
               type="text"
               required
@@ -92,7 +96,9 @@ export default function SettingsScreen({
           </div>
 
           <div>
-            <label className="font-bold block mb-1">Shop Name (English) *</label>
+            <label className="font-bold block mb-1">
+              {lang === 'ta' ? 'கடையின் பெயர் (ஆங்கிலத்தில்) *' : 'Shop Name (English) *'}
+            </label>
             <input
               type="text"
               required
@@ -106,7 +112,9 @@ export default function SettingsScreen({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="font-bold block mb-1">ஜிஎஸ்டி எண் (GSTIN) - விருப்பப்பட்டால்</label>
+            <label className="font-bold block mb-1">
+              {lang === 'ta' ? 'ஜிஎஸ்டி எண் (GSTIN) - விருப்பப்பட்டால்' : 'GSTIN (Optional)'}
+            </label>
             <input
               type="text"
               value={formData.gstin}
@@ -118,7 +126,9 @@ export default function SettingsScreen({
           </div>
 
           <div>
-            <label className="font-bold block mb-1">உணவு பாதுகாப்பு உரிமம் (FSSAI No)</label>
+            <label className="font-bold block mb-1">
+              {lang === 'ta' ? 'உணவு பாதுகாப்பு உரிமம் (FSSAI No)' : 'FSSAI License No'}
+            </label>
             <input
               type="text"
               value={formData.fssai_no}
@@ -130,7 +140,9 @@ export default function SettingsScreen({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="font-bold block mb-1 font-tamil">முகவரி (தமிழ்)</label>
+            <label className="font-bold block mb-1 font-tamil">
+              {lang === 'ta' ? 'முகவரி (தமிழ்)' : 'Address (Tamil)'}
+            </label>
             <textarea
               rows="2"
               value={formData.address_ta}
@@ -140,7 +152,9 @@ export default function SettingsScreen({
           </div>
 
           <div>
-            <label className="font-bold block mb-1">Address (English)</label>
+            <label className="font-bold block mb-1">
+              {lang === 'ta' ? 'முகவரி (ஆங்கிலம்)' : 'Address (English)'}
+            </label>
             <textarea
               rows="2"
               value={formData.address_en}
@@ -152,7 +166,9 @@ export default function SettingsScreen({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="font-bold block mb-1">தொலைபேசி எண் (Phone Number)</label>
+            <label className="font-bold block mb-1">
+              {lang === 'ta' ? 'தொலைபேசி எண்' : 'Phone Number'}
+            </label>
             <input
               type="text"
               value={formData.phone}
@@ -162,7 +178,9 @@ export default function SettingsScreen({
           </div>
 
           <div>
-            <label className="font-bold block mb-1">மின்னஞ்சல் (Email)</label>
+            <label className="font-bold block mb-1">
+              {lang === 'ta' ? 'மின்னஞ்சல்' : 'Email'}
+            </label>
             <input
               type="email"
               value={formData.email}
@@ -174,7 +192,9 @@ export default function SettingsScreen({
 
         <div className="grid grid-cols-3 gap-3 border-t pt-3">
           <div>
-            <label className="font-bold block mb-1">பில் முன்னொட்டு (Bill Prefix)</label>
+            <label className="font-bold block mb-1">
+              {lang === 'ta' ? 'பில் முன்னொட்டு' : 'Bill Prefix'}
+            </label>
             <input
               type="text"
               value={formData.bill_prefix}
@@ -184,7 +204,9 @@ export default function SettingsScreen({
           </div>
 
           <div>
-            <label className="font-bold block mb-1">தெர்மல் பிரிண்டர் அளவு (Printer Width)</label>
+            <label className="font-bold block mb-1">
+              {lang === 'ta' ? 'தெர்மல் பிரிண்டர் அளவு' : 'Thermal Printer Width'}
+            </label>
             <select
               value={formData.thermal_printer_width}
               onChange={(e) => setFormData({ ...formData, thermal_printer_width: e.target.value })}
@@ -196,7 +218,9 @@ export default function SettingsScreen({
           </div>
 
           <div>
-            <label className="font-bold block mb-1">கடையின் UPI ID (QR Code-க்கு)</label>
+            <label className="font-bold block mb-1">
+              {lang === 'ta' ? 'கடையின் UPI ID' : 'Store UPI ID'}
+            </label>
             <input
               type="text"
               value={formData.upi_id}
@@ -209,7 +233,9 @@ export default function SettingsScreen({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="font-bold block mb-1 font-tamil">ரசீது நன்றி வாசகம் (தமிழ்)</label>
+            <label className="font-bold block mb-1 font-tamil">
+              {lang === 'ta' ? 'ரசீது நன்றி வாசகம் (தமிழ்)' : 'Receipt Tagline (Tamil)'}
+            </label>
             <input
               type="text"
               value={formData.receipt_footer_ta}
@@ -219,7 +245,9 @@ export default function SettingsScreen({
           </div>
 
           <div>
-            <label className="font-bold block mb-1">Receipt Footer (English)</label>
+            <label className="font-bold block mb-1">
+              {lang === 'ta' ? 'ரசீது நன்றி வாசகம் (ஆங்கிலம்)' : 'Receipt Tagline (English)'}
+            </label>
             <input
               type="text"
               value={formData.receipt_footer_en}
@@ -235,7 +263,7 @@ export default function SettingsScreen({
             disabled={saving}
             className="px-6 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded font-bold text-xs"
           >
-            {saving ? 'Saving...' : 'Save Settings / அமைப்புகளைச் சேமிக்க'}
+            {saving ? (lang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...') : (lang === 'ta' ? 'அமைப்புகளைச் சேமிக்க' : 'Save Settings')}
           </button>
         </div>
 

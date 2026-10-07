@@ -393,15 +393,15 @@ export default function ProductsScreen({
           <thead className="bg-slate-200 text-slate-800 font-bold border-b border-slate-300">
             <tr>
               <th className="py-2 px-2 text-center w-10 border-r border-slate-300">#</th>
-              <th className="py-2 px-3 border-r border-slate-300">பார்கோடு (Barcode)</th>
-              <th className="py-2 px-3 border-r border-slate-300">பொருளின் பெயர் (தமிழில்)</th>
-              <th className="py-2 px-3 border-r border-slate-300">Item Name (English)</th>
+              <th className="py-2 px-3 border-r border-slate-300">{lang === 'ta' ? 'பார்கோடு' : 'Barcode'}</th>
+              <th className="py-2 px-3 border-r border-slate-300">{lang === 'ta' ? 'பொருளின் பெயர்' : 'Product Name (Tamil)'}</th>
+              <th className="py-2 px-3 border-r border-slate-300">{lang === 'ta' ? 'ஆங்கிலப் பெயர்' : 'Product Name (English)'}</th>
               <th className="py-2 px-2 text-center border-r border-slate-300">HSN</th>
               <th className="py-2 px-2 text-center border-r border-slate-300">GST %</th>
-              <th className="py-2 px-2 text-right border-r border-slate-300">விற்பனை விலை (₹)</th>
-              <th className="py-2 px-2 text-right border-r border-slate-300">கொள்முதல் விலை (₹)</th>
-              <th className="py-2 px-2 text-center border-r border-slate-300">இருப்பு (Stock)</th>
-              <th className="py-2 px-2 text-center">செயல்</th>
+              <th className="py-2 px-2 text-right border-r border-slate-300">{lang === 'ta' ? 'விற்பனை விலை (₹)' : 'Selling Price (₹)'}</th>
+              <th className="py-2 px-2 text-right border-r border-slate-300">{lang === 'ta' ? 'கொள்முதல் விலை (₹)' : 'Cost Price (₹)'}</th>
+              <th className="py-2 px-2 text-center border-r border-slate-300">{lang === 'ta' ? 'இருப்பு' : 'Stock'}</th>
+              <th className="py-2 px-2 text-center">{lang === 'ta' ? 'செயல்' : 'Action'}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 font-medium">
@@ -425,13 +425,13 @@ export default function ProductsScreen({
                     onClick={() => openEditModal(p)}
                     className="text-blue-700 hover:underline font-bold px-1.5 text-xs mr-2"
                   >
-                    Edit
+                    {lang === 'ta' ? 'திருத்து' : 'Edit'}
                   </button>
                   <button
                     onClick={() => handleDelete(p.id)}
                     className="text-rose-700 hover:underline font-bold px-1.5 text-xs"
                   >
-                    Delete
+                    {lang === 'ta' ? 'நீக்கு' : 'Delete'}
                   </button>
                 </td>
               </tr>
@@ -446,7 +446,9 @@ export default function ProductsScreen({
           <div className="bg-white rounded border border-slate-400 max-w-lg w-full p-4 space-y-3 shadow-lg">
             <div className="flex justify-between items-center border-b pb-2">
               <h3 className="font-bold text-slate-900 text-sm font-tamil">
-                {editingProduct ? 'பொருள் திருத்த (Edit Item)' : 'புதிய பொருள் சேர்க்க (Add New Item)'}
+                {editingProduct 
+                  ? (lang === 'ta' ? 'பொருள் திருத்த' : 'Edit Item') 
+                  : (lang === 'ta' ? 'புதிய பொருள் சேர்க்க' : 'Add New Item')}
               </h3>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-500 hover:text-black font-bold">✕</button>
             </div>

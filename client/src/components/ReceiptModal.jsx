@@ -50,14 +50,14 @@ export default function ReceiptModal({
               onClick={handlePrint}
               className="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
             >
-              அச்சிடு [Print]
+              {lang === 'ta' ? 'அச்சிடு [Print]' : 'Print'}
             </button>
 
             <button
               onClick={onClose}
               className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold"
             >
-              ✕ மூடு
+              ✕ {lang === 'ta' ? 'மூடு' : 'Close'}
             </button>
           </div>
         </div>

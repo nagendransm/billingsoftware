@@ -98,7 +98,7 @@ export default function InvoicesScreen({
             onClick={fetchInvoices}
             className="px-3 py-1 bg-slate-800 text-white rounded font-bold"
           >
-            தேடு
+            {lang === 'ta' ? 'தேடு' : 'Search'}
           </button>
         </div>
       </div>
@@ -108,26 +108,30 @@ export default function InvoicesScreen({
         <table className="w-full text-left text-xs border-collapse">
           <thead className="bg-slate-200 text-slate-800 font-bold border-b border-slate-300">
             <tr>
-              <th className="py-2 px-2.5 border-r border-slate-300">ரசீது எண் (Bill No)</th>
-              <th className="py-2 px-2.5 border-r border-slate-300">தேதி & நேரம்</th>
-              <th className="py-2 px-2.5 border-r border-slate-300">வாடிக்கையாளர் (Customer)</th>
-              <th className="py-2 px-2 text-center border-r border-slate-300">பணம் செலுத்திய முறை</th>
-              <th className="py-2 px-2 text-right border-r border-slate-300">வரிக்குட்பட்டது (₹)</th>
+              <th className="py-2 px-2.5 border-r border-slate-300">{lang === 'ta' ? 'ரசீது எண்' : 'Bill No'}</th>
+              <th className="py-2 px-2.5 border-r border-slate-300">{lang === 'ta' ? 'தேதி & நேரம்' : 'Date & Time'}</th>
+              <th className="py-2 px-2.5 border-r border-slate-300">{lang === 'ta' ? 'வாடிக்கையாளர்' : 'Customer'}</th>
+              <th className="py-2 px-2 text-center border-r border-slate-300">{lang === 'ta' ? 'பணம் செலுத்திய முறை' : 'Payment Mode'}</th>
+              <th className="py-2 px-2 text-right border-r border-slate-300">{lang === 'ta' ? 'வரிக்குட்பட்டது (₹)' : 'Taxable (₹)'}</th>
               <th className="py-2 px-2 text-right border-r border-slate-300">CGST (₹)</th>
               <th className="py-2 px-2 text-right border-r border-slate-300">SGST (₹)</th>
-              <th className="py-2 px-2.5 text-right border-r border-slate-300">மொத்தத் தொகை (₹)</th>
-              <th className="py-2 px-2 text-center border-r border-slate-300">நிலை</th>
-              <th className="py-2 px-2 text-center">செயல்</th>
+              <th className="py-2 px-2.5 text-right border-r border-slate-300">{lang === 'ta' ? 'மொத்தத் தொகை (₹)' : 'Total (₹)'}</th>
+              <th className="py-2 px-2 text-center border-r border-slate-300">{lang === 'ta' ? 'நிலை' : 'Status'}</th>
+              <th className="py-2 px-2 text-center">{lang === 'ta' ? 'செயல்' : 'Action'}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 font-medium">
             {loading ? (
               <tr>
-                <td colSpan="10" className="py-8 text-center text-slate-400 font-tamil">ஏற்றப்படுகிறது...</td>
+                <td colSpan="10" className="py-8 text-center text-slate-400">
+                  {lang === 'ta' ? 'ஏற்றப்படுகிறது...' : 'Loading...'}
+                </td>
               </tr>
             ) : invoices.length === 0 ? (
               <tr>
-                <td colSpan="10" className="py-8 text-center text-slate-400 font-tamil">ரசீதுகள் எதுவும் இல்லை</td>
+                <td colSpan="10" className="py-8 text-center text-slate-400">
+                  {lang === 'ta' ? 'ரசீதுகள் எதுவும் இல்லை' : 'No invoices found'}
+                </td>
               </tr>
             ) : (
               invoices.map(inv => {
@@ -137,7 +141,7 @@ export default function InvoicesScreen({
                     <td className="py-2 px-2.5 font-mono font-bold text-slate-900 border-r border-slate-200">{inv.invoice_no}</td>
                     <td className="py-2 px-2.5 font-mono text-slate-600 border-r border-slate-200">{inv.date} {inv.time}</td>
                     <td className="py-2 px-2.5 border-r border-slate-200">
-                      <div className="font-bold text-slate-900 font-tamil">{inv.customer_name}</div>
+                      <div className="font-bold text-slate-900">{inv.customer_name}</div>
                       {inv.customer_phone && <div className="text-[10px] text-slate-500 font-mono">{inv.customer_phone}</div>}
                     </td>
                     <td className="py-2 px-2 text-center capitalize border-r border-slate-200 font-bold">{inv.payment_mode}</td>
@@ -146,7 +150,9 @@ export default function InvoicesScreen({
                     <td className="py-2 px-2 text-right font-mono border-r border-slate-200">₹{Number(inv.total_sgst).toFixed(2)}</td>
                     <td className="py-2 px-2.5 text-right font-mono font-bold text-slate-900 text-sm border-r border-slate-200">₹{Number(inv.grand_total).toFixed(2)}</td>
                     <td className="py-2 px-2 text-center border-r border-slate-200">
-                      {isCancelled ? <span className="text-rose-700 font-bold">ரத்து</span> : <span className="text-emerald-800 font-bold">முடிந்தது</span>}
+                      {isCancelled 
+                        ? <span className="text-rose-700 font-bold">{lang === 'ta' ? 'ரத்து' : 'Cancelled'}</span> 
+                        : <span className="text-emerald-800 font-bold">{lang === 'ta' ? 'முடிந்தது' : 'Paid'}</span>}
                     </td>
                     <td className="py-2 px-2 text-center whitespace-nowrap">
                       <button
