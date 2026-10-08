@@ -8,11 +8,13 @@ export default function DesktopWorkspace({
   currentUser = null
 }) {
   const [timeStr, setTimeStr] = useState('');
+  const [dateStr, setDateStr] = useState('');
 
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
       setTimeStr(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }));
+      setDateStr(now.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }));
     };
     updateTime();
     const timer = setInterval(updateTime, 1000);
@@ -20,194 +22,166 @@ export default function DesktopWorkspace({
   }, []);
 
   const shopName = lang === 'ta'
-    ? (storeSettings.shop_name_ta || storeSettings.shop_name_en || 'ஸ்ரீ குமரன் சூப்பர் மார்க்கெட்')
-    : (storeSettings.shop_name_en || storeSettings.shop_name_ta || 'SRI KUMARAN SUPER MARKET');
+    ? (storeSettings.shop_name_ta || storeSettings.shop_name_en || 'மளிகை கடை பில்லிங்')
+    : (storeSettings.shop_name_en || storeSettings.shop_name_ta || 'Supermarket Grocery Billing POS');
 
   const handleOpenBilling = (mode) => {
     if (setBillingMode) setBillingMode(mode);
     if (onOpenScreen) onOpenScreen('pos');
   };
 
+  const isNormalUser = currentUser?.role === 'user';
+
   return (
     <div 
-      className="relative w-full h-full flex flex-col items-center justify-between overflow-hidden select-none"
+      className="relative w-full h-full flex flex-col items-center justify-between overflow-hidden select-none bg-slate-950"
       style={{
-        background: 'radial-gradient(circle at 50% 45%, #2a535e 0%, #1f3f47 50%, #13282e 100%)',
+        background: 'radial-gradient(circle at 50% 40%, #0f2b2b 0%, #091a1f 40%, #020617 100%)',
       }}
     >
-      {/* Background Micro-pattern Overlay */}
+      {/* Background Subtle Geometric Pattern */}
       <div 
-        className="absolute inset-0 pointer-events-none opacity-15"
+        className="absolute inset-0 pointer-events-none opacity-10"
         style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.2) 1px, transparent 0)`,
-          backgroundSize: '16px 16px'
+          backgroundImage: `radial-gradient(circle at 2px 2px, rgba(16, 185, 129, 0.4) 1px, transparent 0)`,
+          backgroundSize: '24px 24px'
         }}
       />
 
       {/* Top Banner Notice */}
-      <div className="w-full text-center py-2 z-10 text-[11px] text-cyan-200/80 font-mono tracking-widest uppercase">
-        {shopName} • 2026 RETAIL ENTERPRISE EDITION
+      <div className="w-full flex items-center justify-between px-6 py-2.5 z-10 text-xs text-slate-400 font-sans border-b border-emerald-950/40">
+        <div className="flex items-center space-x-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-slate-300 font-medium tracking-wide">POS Billing Terminal Active</span>
+        </div>
+        <div className="text-[11px] font-mono text-emerald-400/80">
+          {storeSettings.gstin ? `GSTIN: ${storeSettings.gstin}` : 'Tamil Nadu Retail Edition'}
+        </div>
       </div>
 
-      {/* Center 3D Logo & Brand (Matching the Screenshot) */}
-      <div className="flex flex-col items-center justify-center my-auto z-10 text-center px-4">
-        {/* 3D Cyan Intertwined Knot Emblem */}
-        <div className="relative mb-3 flex items-center justify-center drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]">
-          <svg className="w-36 h-36 sm:w-44 sm:h-44" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="cyanGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#a5f3fc" />
-                <stop offset="50%" stopColor="#38bdf8" />
-                <stop offset="100%" stopColor="#0284c7" />
-              </linearGradient>
-              <linearGradient id="cyanGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#67e8f9" />
-                <stop offset="70%" stopColor="#0ea5e9" />
-                <stop offset="100%" stopColor="#0369a1" />
-              </linearGradient>
-              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#0284c7" floodOpacity="0.4" />
-              </filter>
-            </defs>
-            {/* Top Loop */}
-            <path 
-              d="M100 35 C125 35 145 55 145 80 C145 105 125 125 100 125 C75 125 55 105 55 80 C55 55 75 35 100 35 Z" 
-              stroke="url(#cyanGrad1)" 
-              strokeWidth="14" 
-              strokeLinecap="round"
-              fill="none"
-              filter="url(#glow)"
-            />
-            {/* Bottom-Left Loop */}
-            <path 
-              d="M75 80 C95 80 115 100 115 125 C115 150 95 165 70 165 C45 165 30 145 30 120 C30 95 50 80 75 80 Z" 
-              stroke="url(#cyanGrad2)" 
-              strokeWidth="14" 
-              strokeLinecap="round"
-              fill="none"
-              filter="url(#glow)"
-            />
-            {/* Bottom-Right Loop */}
-            <path 
-              d="M125 80 C150 80 170 95 170 120 C170 145 155 165 130 165 C105 165 85 150 85 125 C85 100 105 80 125 80 Z" 
-              stroke="url(#cyanGrad1)" 
-              strokeWidth="14" 
-              strokeLinecap="round"
-              fill="none"
-              filter="url(#glow)"
-            />
-          </svg>
-        </div>
-
-        {/* NOVA 3D Stylized Typography */}
-        <div className="flex items-center justify-center space-x-1.5 drop-shadow-[0_8px_16px_rgba(0,0,0,0.8)]">
-          {/* Stylized 'N' pebble */}
-          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-white via-slate-200 to-amber-200 flex items-center justify-center shadow-lg border border-white/60">
-            <span className="text-slate-900 font-extrabold text-lg sm:text-xl font-mono">N</span>
+      {/* Center Supermarket Showcase & Clock */}
+      <div className="flex flex-col items-center justify-center my-auto z-10 text-center px-4 max-w-2xl">
+        
+        {/* Modern Supermarket Glowing Cart Emblem */}
+        <div className="relative mb-4 flex items-center justify-center">
+          <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 p-0.5 shadow-[0_0_50px_rgba(16,185,129,0.35)] flex items-center justify-center">
+            <div className="w-full h-full bg-slate-900/90 rounded-[22px] flex items-center justify-center backdrop-blur-xs">
+              <span className="text-5xl sm:text-6xl drop-shadow-md">🛒</span>
+            </div>
           </div>
-          <span 
-            className="text-3xl sm:text-4xl font-extrabold tracking-widest uppercase font-mono"
-            style={{
-              background: 'linear-gradient(180deg, #ffffff 0%, #cbd5e1 50%, #fef08a 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              textShadow: '0 2px 10px rgba(0,0,0,0.5)'
-            }}
-          >
-            OVA
-          </span>
         </div>
 
         {/* Store Title */}
-        <h2 className="text-white/95 font-bold text-sm sm:text-base font-tamil mt-3 tracking-wider drop-shadow-md">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-tamil drop-shadow-lg">
           {shopName}
-        </h2>
-        {/* Keyboard instruction pill */}
-        <div className="mt-4 px-3 py-1 bg-black/40 border border-cyan-400/30 rounded-full text-[11px] font-mono text-cyan-200/90 flex items-center space-x-2 shadow-inner">
-          <span className="bg-purple-700 text-white px-1.5 py-0.2 rounded font-bold text-[10px]">ENTER</span>
-          <span>{lang === 'ta' ? 'அழுத்தினால் மெனு திறக்கும்' : 'Open Transactions Menu'}</span>
-          <span className="text-white/40">|</span>
-          <span className="text-amber-300 font-bold">← → ↑ ↓</span>
-          <span>{lang === 'ta' ? 'மெனுக்களை நகர்த்தலாம்' : 'Navigate Menus'}</span>
+        </h1>
+        <p className="text-xs sm:text-sm text-emerald-300/80 mt-1 font-medium tracking-wide">
+          Tamil Nadu Grocery GST Billing POS
+        </p>
+
+        {/* Live Date & Time Display Card */}
+        <div className="mt-5 px-5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-800 shadow-xl flex items-center space-x-4">
+          <div className="text-left">
+            <div className="text-[10px] text-slate-400 uppercase tracking-widest font-mono font-semibold">Today</div>
+            <div className="text-xs text-slate-200 font-medium">{dateStr || 'Today'}</div>
+          </div>
+          <div className="h-7 w-px bg-slate-800" />
+          <div className="text-left font-mono">
+            <div className="text-[10px] text-emerald-400 uppercase tracking-widest font-semibold">Live Time</div>
+            <div className="text-base text-emerald-300 font-bold tracking-wider">{timeStr || '12:00:00 PM'}</div>
+          </div>
         </div>
+
+        {/* Keyboard Navigation Pill */}
+        <div className="mt-4 px-3.5 py-1.5 bg-slate-900/70 border border-slate-800 rounded-full text-xs font-mono text-slate-300 flex items-center space-x-2 shadow-inner">
+          <span className="bg-emerald-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">ENTER</span>
+          <span>Open Transactions</span>
+          <span className="text-slate-600">•</span>
+          <span className="text-amber-300 font-bold">← → ↑ ↓</span>
+          <span>Navigate Menus</span>
+          <span className="text-slate-600">•</span>
+          <span className="text-emerald-400 font-bold">[F1]</span>
+          <span>New Bill</span>
+        </div>
+
       </div>
 
-      {/* Bottom Launcher Bar with ERP Function Keys */}
-      <div className="w-full bg-black/40 backdrop-blur-md border-t border-cyan-900/40 px-3 py-2 z-10 flex flex-wrap items-center justify-between gap-2 text-xs">
-        {/* Quick Launch Buttons */}
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+      {/* Bottom Launcher Bar with Modern Function Keys */}
+      <div className="w-full bg-slate-900/90 backdrop-blur-md border-t border-slate-800 px-4 py-2.5 z-10 flex flex-wrap items-center justify-between gap-2 text-xs">
+        {/* Quick Launch Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2">
+          
           <button
             onClick={() => handleOpenBilling('tax_invoice')}
-            className="bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-white font-bold px-2.5 py-1 rounded shadow-md border border-emerald-500/50 flex items-center space-x-1.5 transition-colors"
+            className="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm border border-emerald-400/30 flex items-center space-x-2 transition-all hover:scale-[1.02]"
           >
-            <span className="bg-emerald-950 px-1 py-0.2 rounded font-mono text-[10px] text-emerald-300">F1</span>
+            <span className="bg-emerald-950 px-1.5 py-0.5 rounded font-mono text-[10px] text-emerald-300 font-bold">F1</span>
             <span>{lang === 'ta' ? 'ஜிஎஸ்டி விற்பனை பில்' : 'Sales Bill (GST)'}</span>
           </button>
 
           <button
             onClick={() => handleOpenBilling('estimate')}
-            className="bg-purple-900 hover:bg-purple-800 active:bg-purple-950 text-white font-bold px-2.5 py-1 rounded shadow-md border border-purple-500/50 flex items-center space-x-1.5 transition-colors"
+            className="bg-sky-700 hover:bg-sky-600 active:bg-sky-800 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm border border-sky-400/30 flex items-center space-x-2 transition-all hover:scale-[1.02]"
           >
-            <span className="bg-black/40 px-1 py-0.2 rounded font-mono text-[10px] text-purple-200">SO</span>
+            <span className="bg-sky-950 px-1.5 py-0.5 rounded font-mono text-[10px] text-sky-200 font-bold">SO</span>
             <span>{lang === 'ta' ? 'விற்பனை ஆணை' : 'Sales Order'}</span>
           </button>
 
           <button
             onClick={() => handleOpenBilling('return_bill')}
-            className="bg-rose-900 hover:bg-rose-800 active:bg-rose-950 text-white font-bold px-2 py-1 rounded shadow-md border border-rose-500/50 flex items-center space-x-1.5 transition-colors"
+            className="bg-rose-700 hover:bg-rose-600 active:bg-rose-800 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm border border-rose-400/30 flex items-center space-x-2 transition-all hover:scale-[1.02]"
           >
-            <span className="bg-black/40 px-1 py-0.2 rounded font-mono text-[10px] text-rose-300">RET</span>
+            <span className="bg-rose-950 px-1.5 py-0.5 rounded font-mono text-[10px] text-rose-200 font-bold">RET</span>
             <span>{lang === 'ta' ? 'திருப்பல் பில்' : 'Sales Return'}</span>
           </button>
 
-          {/* Admin & Root Only Quick Launch Items */}
-          {!currentUser || currentUser.role !== 'user' ? (
+          {/* Admin & Root Only Master Launchers */}
+          {!isNormalUser && (
             <>
               <button
                 onClick={() => onOpenScreen('products')}
-                className="bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-white font-bold px-2 py-1 rounded shadow-md border border-slate-600 flex items-center space-x-1.5 transition-colors"
+                className="bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 hover:text-white font-semibold px-2.5 py-1.5 rounded-lg border border-slate-700 flex items-center space-x-1.5 transition-colors"
               >
-                <span className="bg-slate-950 px-1 py-0.2 rounded font-mono text-[10px] text-slate-300">F2</span>
+                <span className="bg-slate-950 px-1.5 py-0.5 rounded font-mono text-[10px] text-slate-400">F2</span>
                 <span>{lang === 'ta' ? 'பொருட்கள்' : 'Items Master'}</span>
               </button>
 
               <button
                 onClick={() => onOpenScreen('invoices')}
-                className="bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-white font-bold px-2 py-1 rounded shadow-md border border-slate-600 flex items-center space-x-1.5 transition-colors"
+                className="bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 hover:text-white font-semibold px-2.5 py-1.5 rounded-lg border border-slate-700 flex items-center space-x-1.5 transition-colors"
               >
-                <span className="bg-slate-950 px-1 py-0.2 rounded font-mono text-[10px] text-slate-300">F3</span>
+                <span className="bg-slate-950 px-1.5 py-0.5 rounded font-mono text-[10px] text-slate-400">F3</span>
                 <span>{lang === 'ta' ? 'விற்பனை ஏடு' : 'Bills Book'}</span>
               </button>
 
               <button
                 onClick={() => onOpenScreen('reports')}
-                className="bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-white font-bold px-2 py-1 rounded shadow-md border border-slate-600 flex items-center space-x-1.5 transition-colors"
+                className="bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 hover:text-white font-semibold px-2.5 py-1.5 rounded-lg border border-slate-700 flex items-center space-x-1.5 transition-colors"
               >
-                <span className="bg-slate-950 px-1 py-0.2 rounded font-mono text-[10px] text-slate-300">F4</span>
+                <span className="bg-slate-950 px-1.5 py-0.5 rounded font-mono text-[10px] text-slate-400">F4</span>
                 <span>{lang === 'ta' ? 'ஜிஎஸ்டி அறிக்கை' : 'GST Reports'}</span>
               </button>
             </>
-          ) : null}
+          )}
 
+          {/* Customer Master is accessible to all users */}
           <button
             onClick={() => onOpenScreen('customers')}
-            className="bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-white font-bold px-2 py-1 rounded shadow-md border border-slate-600 flex items-center space-x-1.5 transition-colors"
+            className="bg-amber-700 hover:bg-amber-600 active:bg-amber-800 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm border border-amber-400/30 flex items-center space-x-2 transition-all hover:scale-[1.02]"
           >
-            <span className="bg-slate-950 px-1 py-0.2 rounded font-mono text-[10px] text-slate-300">F5</span>
-            <span>{lang === 'ta' ? 'கடன் கணக்கு' : 'Credit Ledger'}</span>
+            <span className="bg-amber-950 px-1.5 py-0.5 rounded font-mono text-[10px] text-amber-200 font-bold">F5</span>
+            <span>{lang === 'ta' ? 'கடன் கணக்கு' : 'Customer Master'}</span>
           </button>
         </div>
 
-        {/* Digital Clock & Service Status */}
-        <div className="flex items-center space-x-3 text-cyan-200/90 ml-auto font-mono">
-          <div className="hidden md:flex items-center space-x-1 text-[11px] text-slate-400">
-            <span>Service:</span>
-            <span className="text-emerald-400 font-bold">29.06.2027</span>
-          </div>
-          <div className="bg-slate-950/80 px-2.5 py-0.5 rounded border border-cyan-800/40 text-emerald-400 font-bold tracking-wider text-xs">
-            {timeStr || '12:00:00 PM'}
+        {/* Status indicator on bottom right */}
+        <div className="flex items-center space-x-3 text-slate-400 font-mono text-xs ml-auto">
+          <div className="flex items-center space-x-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className="text-slate-300 font-semibold">{currentUser ? currentUser.name : 'Terminal Online'}</span>
           </div>
         </div>
+
       </div>
     </div>
   );

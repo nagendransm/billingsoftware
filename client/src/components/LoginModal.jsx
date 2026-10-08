@@ -33,22 +33,24 @@ export default function LoginModal({ onLogin, lang = 'en' }) {
 
   return (
     <div 
-      className="fixed inset-0 z-[999999] flex flex-col justify-between overflow-hidden select-none"
+      className="fixed inset-0 z-[999999] flex flex-col justify-between overflow-hidden select-none bg-slate-950"
       style={{
-        background: 'radial-gradient(circle at 50% 45%, #2a535e 0%, #1f3f47 50%, #13282e 100%)',
+        background: 'radial-gradient(circle at 50% 45%, #0f2b2b 0%, #091a1f 40%, #020617 100%)',
       }}
     >
       {/* Top Window Bar */}
       <div 
-        className="w-full bg-white text-slate-900 border-b border-slate-300 px-3 flex items-center justify-between text-xs font-sans tracking-tight"
-        style={{ height: '30px', WebkitAppRegion: 'drag' }}
+        className="w-full bg-[#0f172a] text-slate-100 border-b border-slate-800 px-3 flex items-center justify-between text-xs font-sans tracking-tight"
+        style={{ height: '32px', WebkitAppRegion: 'drag' }}
       >
         <div className="flex items-center space-x-2 font-normal" style={{ WebkitAppRegion: 'no-drag' }}>
-          <span className="text-purple-700 text-sm font-bold">❖</span>
-          <span className="font-bold text-slate-900">Nova Software : User Authentication</span>
+          <div className="w-5 h-5 rounded bg-emerald-600 flex items-center justify-center text-white text-xs font-bold shadow-xs">
+            🛒
+          </div>
+          <span className="font-bold text-slate-200">Tamil Nadu Grocery GST Billing POS</span>
         </div>
 
-        <div className="flex items-center h-full" style={{ WebkitAppRegion: 'no-drag' }}>
+        <div className="flex items-center h-full space-x-1" style={{ WebkitAppRegion: 'no-drag' }}>
           <button 
             type="button"
             onClick={() => {
@@ -59,7 +61,7 @@ export default function LoginModal({ onLogin, lang = 'en' }) {
               }
             }}
             title="Maximize"
-            className="h-6 w-7 flex items-center justify-center hover:bg-slate-200 text-slate-700 text-[11px] transition-colors"
+            className="h-6 w-7 rounded flex items-center justify-center hover:bg-slate-800 text-slate-400 hover:text-white text-[11px] transition-colors"
           >
             ▢
           </button>
@@ -73,7 +75,7 @@ export default function LoginModal({ onLogin, lang = 'en' }) {
               }
             }}
             title="Close"
-            className="h-6 w-7 flex items-center justify-center hover:bg-rose-600 hover:text-white text-slate-700 text-xs transition-colors"
+            className="h-6 w-7 rounded flex items-center justify-center hover:bg-rose-600 hover:text-white text-slate-400 text-xs transition-colors"
           >
             ✕
           </button>
@@ -82,26 +84,26 @@ export default function LoginModal({ onLogin, lang = 'en' }) {
 
       {/* Main Centered Login Dialog */}
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg border border-slate-300 max-w-sm w-full shadow-2xl overflow-hidden text-xs">
+        <div className="bg-white rounded-2xl border border-slate-200 max-w-sm w-full shadow-2xl overflow-hidden text-xs">
           
           {/* Modal Header */}
-          <div className="bg-[#1f3f47] text-white p-4 text-center border-b border-cyan-800">
-            <div className="w-12 h-12 bg-purple-700 rounded-full flex items-center justify-center mx-auto mb-2 text-xl shadow-md border-2 border-purple-400">
+          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 text-white p-5 text-center border-b border-slate-800">
+            <div className="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-2.5 text-2xl shadow-lg border border-emerald-400/30">
               🛒
             </div>
-            <h2 className="text-base font-bold tracking-wide">
-              Nova Software Billing POS
+            <h2 className="text-base font-extrabold tracking-wide text-white">
+              Grocery GST Billing POS
             </h2>
-            <p className="text-[11px] text-cyan-200 mt-0.5">
-              Please sign in to access billing system
+            <p className="text-[11px] text-emerald-300/90 mt-0.5">
+              Sign in to your cashier or admin account
             </p>
           </div>
 
           {/* Form Body */}
-          <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
             
             {error && (
-              <div className="p-2 bg-rose-50 border border-rose-300 rounded text-rose-800 text-[11px] font-bold text-center">
+              <div className="p-2.5 bg-rose-50 border border-rose-300 rounded-lg text-rose-800 text-xs font-bold text-center">
                 ⚠️ {error}
               </div>
             )}
@@ -118,7 +120,7 @@ export default function LoginModal({ onLogin, lang = 'en' }) {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter username"
-                className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs font-semibold focus:border-purple-700 focus:outline-none"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500 focus:outline-none transition-all"
               />
             </div>
 
@@ -133,14 +135,14 @@ export default function LoginModal({ onLogin, lang = 'en' }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs font-semibold focus:border-purple-700 focus:outline-none"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500 focus:outline-none transition-all"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2 bg-[#6a1b6b] hover:bg-[#521353] disabled:opacity-50 text-white font-bold rounded text-xs shadow-xs transition-colors flex items-center justify-center space-x-1"
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-white font-bold rounded-lg text-xs shadow-md transition-all flex items-center justify-center space-x-1"
             >
               <span>{loading ? 'Logging in...' : 'Sign In / உள்நுழை'}</span>
             </button>
@@ -151,8 +153,8 @@ export default function LoginModal({ onLogin, lang = 'en' }) {
       </div>
 
       {/* Bottom Info */}
-      <div className="py-2 text-center text-[11px] text-cyan-200/60 font-mono select-none">
-        Nova POS Retail Software • Enterprise Edition
+      <div className="py-2.5 text-center text-xs text-slate-500 font-sans select-none">
+        Tamil Nadu Grocery GST Billing POS • Retail Desktop Edition
       </div>
     </div>
   );

@@ -254,14 +254,14 @@ export default function Navbar({
       items: [
         {
           id: 'licence_details',
-          label: 'Licence Information (Ends 29.06.2027)',
+          label: 'System & Licence Information',
           action: () => {
             if (onOpenLicence) onOpenLicence();
           }
         },
         {
           id: 'about_software',
-          label: 'About Nova POS Software',
+          label: 'About Supermarket GST POS Software',
           action: () => {
             if (onOpenLicence) onOpenLicence();
           }
@@ -424,44 +424,54 @@ export default function Navbar({
   return (
     <div ref={menuBarRef} className="no-print w-full flex-shrink-0 select-none relative z-[1000]">
       
-      {/* 1. Top Title Bar / Window Header (Matching the Screenshot Exactly) */}
+      {/* 1. Modern Top Title Bar / Window Header */}
       <div 
-        className="w-full bg-white text-slate-900 border-b border-slate-300 px-3 flex items-center justify-between text-xs font-sans tracking-tight"
-        style={{ height: '30px', WebkitAppRegion: 'drag' }}
+        className="w-full bg-[#0f172a] text-slate-100 border-b border-slate-800 px-3 flex items-center justify-between text-xs font-sans tracking-tight"
+        style={{ height: '32px', WebkitAppRegion: 'drag' }}
       >
-        {/* Left: Software Logo & Shop Name */}
-        <div className="flex items-center space-x-2 font-normal truncate" style={{ WebkitAppRegion: 'no-drag' }}>
-          {/* Logo icon matching the screenshot */}
-          <span className="text-purple-700 text-sm font-bold flex items-center">
-            ❖
-          </span>
-          <div className="flex items-center space-x-1.5 text-xs font-semibold text-slate-900">
-            <span className="font-bold">Nova Software :</span>
-            <span className="tracking-wide font-tamil">{shopName} - {currentYear}</span>
+        {/* Left: Store Brand & Name */}
+        <div className="flex items-center space-x-2.5 truncate" style={{ WebkitAppRegion: 'no-drag' }}>
+          <div className="w-5 h-5 rounded bg-emerald-600 flex items-center justify-center text-white text-xs font-bold shadow-xs">
+            🛒
+          </div>
+          <div className="flex items-center space-x-2 text-xs">
+            <span className="font-bold tracking-tight text-white font-tamil">{shopName}</span>
+            <span className="text-slate-600 font-mono text-[11px]">|</span>
+            <span className="text-emerald-400 font-medium text-[11px]">GST POS Billing</span>
           </div>
         </div>
 
-        {/* Center: Mode Indicator Tag e.g. { T } */}
-        <div className="hidden sm:flex items-center space-x-1 font-mono font-bold text-xs text-slate-800" style={{ WebkitAppRegion: 'no-drag' }}>
-          <span>&#123;</span>
-          <span className={modeCode === 'T' ? 'text-purple-800' : modeCode === 'E' ? 'text-amber-800' : 'text-rose-800'}>
-            {modeCode}
+        {/* Center: Mode Indicator Pill Badge */}
+        <div className="hidden sm:flex items-center space-x-2" style={{ WebkitAppRegion: 'no-drag' }}>
+          <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase font-mono shadow-xs border ${
+            modeCode === 'T' 
+              ? 'bg-emerald-950/80 text-emerald-300 border-emerald-700/60'
+              : modeCode === 'SO'
+              ? 'bg-sky-950/80 text-sky-300 border-sky-700/60'
+              : 'bg-rose-950/80 text-rose-300 border-rose-700/60'
+          }`}>
+            {modeCode === 'T' ? '● TAX INVOICE [T]' : modeCode === 'SO' ? '● SALES ORDER [SO]' : '● SALES RETURN [R]'}
           </span>
-          <span>&#125;</span>
         </div>
 
-        {/* Right: Service Expiry Info & Window Controls */}
-        <div className="flex items-center space-x-4" style={{ WebkitAppRegion: 'no-drag' }}>
-          <div className="text-[11px] text-slate-600 font-medium whitespace-nowrap">
-            ( Service Ends on : <span className="font-mono font-bold text-slate-900">29.06.2027</span> )
-          </div>
+        {/* Right: Active User & Modern Window Controls */}
+        <div className="flex items-center space-x-3" style={{ WebkitAppRegion: 'no-drag' }}>
+          {currentUser && (
+            <div className="flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-slate-800/80 border border-slate-700 text-[11px] text-slate-300">
+              <span>{currentUser.role === 'root' ? '👑' : currentUser.role === 'admin' ? '🛡️' : '👤'}</span>
+              <span className="font-semibold text-slate-200">{currentUser.name || currentUser.username}</span>
+              <span className="text-[9px] uppercase tracking-wider px-1 py-0.2 rounded bg-slate-700 text-slate-300 font-bold">
+                {currentUser.role}
+              </span>
+            </div>
+          )}
 
-          {/* Desktop Window Controls (Minimize, Maximize, Close) */}
-          <div className="flex items-center h-full">
+          {/* Window Controls */}
+          <div className="flex items-center h-full space-x-1">
             <button 
               onClick={() => setActiveTab('desktop')}
               title="Minimize to Desktop Workspace"
-              className="h-6 w-7 flex items-center justify-center hover:bg-slate-200 text-slate-700 text-xs transition-colors"
+              className="h-6 w-7 rounded flex items-center justify-center hover:bg-slate-800 text-slate-400 hover:text-white text-xs transition-colors"
             >
               —
             </button>
@@ -474,7 +484,7 @@ export default function Navbar({
                 }
               }}
               title="Maximize / Toggle Fullscreen"
-              className="h-6 w-7 flex items-center justify-center hover:bg-slate-200 text-slate-700 text-[11px] transition-colors"
+              className="h-6 w-7 rounded flex items-center justify-center hover:bg-slate-800 text-slate-400 hover:text-white text-[11px] transition-colors"
             >
               ▢
             </button>
@@ -484,7 +494,7 @@ export default function Navbar({
                 setActiveTab('desktop');
               }}
               title="Close / Exit"
-              className="h-6 w-7 flex items-center justify-center hover:bg-rose-600 hover:text-white text-slate-700 text-xs transition-colors"
+              className="h-6 w-7 rounded flex items-center justify-center hover:bg-rose-600 hover:text-white text-slate-400 text-xs transition-colors"
             >
               ✕
             </button>
@@ -492,10 +502,10 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* 2. Classic Desktop Menu Bar (Transactions, Masters, Accounts...) */}
+      {/* 2. Modern Navigation Menu Bar (Transactions, Masters, Accounts...) */}
       <nav 
-        className="w-full bg-[#f0f0f0] border-b border-[#c8c8c8] px-1 flex items-center space-x-0.5 text-xs text-slate-800 font-sans shadow-2xs relative z-[1001]"
-        style={{ minHeight: '26px' }}
+        className="w-full bg-[#1e293b] border-b border-slate-700/80 px-2 flex items-center space-x-1 text-xs text-slate-200 font-sans shadow-md relative z-[1001]"
+        style={{ minHeight: '28px' }}
       >
         {menuKeys.map((menuKey) => {
           const menu = menuConfig[menuKey];
@@ -514,24 +524,24 @@ export default function Navbar({
                     setHighlightedIndex(0);
                   }
                 }}
-                className={`px-2 py-0.5 rounded-none transition-colors text-xs font-normal whitespace-nowrap ${
+                className={`px-2.5 py-1 rounded text-xs font-medium tracking-wide transition-all ${
                   isOpen 
-                    ? 'bg-[#6a1b6b] text-white font-semibold' 
-                    : 'hover:bg-slate-300 text-slate-800'
+                    ? 'bg-emerald-600 text-white font-bold shadow-xs' 
+                    : 'hover:bg-slate-700 text-slate-200 hover:text-white'
                 }`}
               >
                 {menu.label}
               </button>
 
-              {/* Classic Desktop Dropdown Menu (Exact match of screenshot) */}
+              {/* Modern Dropdown Menu */}
               {isOpen && menu.items && (
                 <div 
-                  className="absolute left-0 top-full bg-[#f3f4f6] border border-slate-400 shadow-2xl z-[99999] min-w-[12rem] py-0.5 text-slate-800 animate-fade-in"
-                  style={{ minWidth: menuKey === 'transactions' ? '12.5rem' : '14rem' }}
+                  className="absolute left-0 top-full bg-[#0f172a]/95 backdrop-blur-md border border-slate-700 shadow-2xl rounded-lg z-[99999] min-w-[13.5rem] p-1 text-slate-200 animate-fade-in"
+                  style={{ minWidth: menuKey === 'transactions' ? '13rem' : '14.5rem' }}
                 >
                   {menu.items.map((item, itemIdx) => {
                     if (item.isDivider) {
-                      return <div key={`div-${itemIdx}`} className="border-t border-slate-300 my-0.5" />;
+                      return <div key={`div-${itemIdx}`} className="border-t border-slate-700/70 my-1" />;
                     }
 
                     // Count valid index excluding dividers
@@ -547,13 +557,13 @@ export default function Navbar({
                           setOpenMenu(null);
                         }}
                         onMouseEnter={() => setHighlightedIndex(currentValidIdx)}
-                        className={`w-full text-left px-3 py-1 text-xs block transition-colors leading-tight ${
+                        className={`w-full text-left px-3 py-1.5 text-xs rounded transition-all flex items-center justify-between ${
                           isHighlighted
-                            ? 'bg-[#6a1b6b] text-white font-semibold'
-                            : 'hover:bg-[#6a1b6b] hover:text-white text-slate-900'
+                            ? 'bg-emerald-600 text-white font-semibold shadow-xs'
+                            : 'hover:bg-slate-800 hover:text-white text-slate-300'
                         }`}
                       >
-                        {item.label}
+                        <span>{item.label}</span>
                       </button>
                     );
                   })}
@@ -567,10 +577,10 @@ export default function Navbar({
         {lowStockCount > 0 && (
           <button
             onClick={() => setActiveTab('products')}
-            className="ml-auto text-[10px] bg-rose-600 hover:bg-rose-700 text-white font-bold px-2 py-0.2 rounded font-mono shadow-2xs"
+            className="ml-auto text-[10px] bg-rose-600 hover:bg-rose-700 text-white font-bold px-2.5 py-0.5 rounded font-mono shadow-xs"
             title="Low Stock Items"
           >
-            Alert: {lowStockCount} Low
+            Alert: {lowStockCount} Low Stock
           </button>
         )}
       </nav>

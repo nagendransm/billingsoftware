@@ -296,23 +296,27 @@ export default function App() {
         )}
       </main>
 
-      {/* Bottom Status Bar (Classic Desktop ERP Style) */}
-      <footer className="no-print bg-[#f0f0f0] text-slate-700 px-3 py-0.5 border-t border-[#c8c8c8] text-xs flex flex-wrap items-center justify-between gap-1 font-sans flex-shrink-0 select-none">
+      {/* Bottom Status Bar (Modern POS Footer) */}
+      <footer className="no-print bg-[#0f172a] text-slate-300 px-4 py-1.5 border-t border-slate-800 text-xs flex flex-wrap items-center justify-between gap-2 font-sans flex-shrink-0 select-none">
         <div className="flex items-center space-x-2 text-[11px]">
-          <span className="font-bold text-purple-900">{lang === 'ta' ? 'குறுக்குவழிகள்:' : 'Shortcuts:'}</span>
-          <span className="bg-white px-1 border border-slate-300 rounded font-mono">[F1: Bill]</span>
-          <span className="bg-white px-1 border border-slate-300 rounded font-mono">[F2: New]</span>
-          <span className="bg-white px-1 border border-slate-300 rounded font-mono">[F4: Item]</span>
-          <span className="bg-white px-1 border border-slate-300 rounded font-mono">[F8: Save]</span>
-          <span className="bg-white px-1 border border-slate-300 rounded font-mono">[F9: Print]</span>
-          <span className="bg-white px-1 border border-slate-300 rounded font-mono">[F10: Hold]</span>
-          <span className="bg-white px-1 border border-slate-300 rounded font-mono">[Alt+S: Search]</span>
+          <span className="font-bold text-emerald-400">{lang === 'ta' ? 'குறுக்குவழிகள்:' : 'Shortcuts:'}</span>
+          <span className="bg-slate-800/90 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px] text-slate-300">[F1: Bill]</span>
+          <span className="bg-slate-800/90 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px] text-slate-300">[F2: Master]</span>
+          <span className="bg-slate-800/90 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px] text-slate-300">[F5: Khata]</span>
+          <span className="bg-slate-800/90 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px] text-slate-300">[F8: Save]</span>
+          <span className="bg-slate-800/90 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px] text-slate-300">[F9: Print]</span>
+          <span className="bg-slate-800/90 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px] text-slate-300">[Alt+S: Search]</span>
         </div>
 
-        <div className="flex items-center space-x-3 text-[11px] text-slate-600">
-          <span>Service Ends on: <strong className="font-mono text-purple-900">29.06.2027</strong></span>
-          <span>|</span>
-          <span className="font-semibold">{currentUser ? `User: ${currentUser.name || currentUser.username}` : 'Ready'}</span>
+        <div className="flex items-center space-x-3 text-[11px] text-slate-400 font-mono">
+          <div className="flex items-center space-x-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-slate-300 font-sans font-medium">Terminal Online</span>
+          </div>
+          <span className="text-slate-700">|</span>
+          <span className="font-sans font-semibold text-slate-200">
+            {currentUser ? `${currentUser.name || currentUser.username} (${currentUser.role})` : 'Offline'}
+          </span>
         </div>
       </footer>
 
