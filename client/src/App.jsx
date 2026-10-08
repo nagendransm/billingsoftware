@@ -231,9 +231,6 @@ export default function App() {
           <DesktopWorkspace
             storeSettings={storeSettings}
             lang={lang}
-            onOpenScreen={(tab) => setActiveTab(tab)}
-            setBillingMode={setBillingMode}
-            currentUser={currentUser}
           />
         )}
 
@@ -296,26 +293,16 @@ export default function App() {
         )}
       </main>
 
-      {/* Bottom Status Bar (Modern POS Footer) */}
-      <footer className="no-print bg-[#0f172a] text-slate-300 px-4 py-1.5 border-t border-slate-800 text-xs flex flex-wrap items-center justify-between gap-2 font-sans flex-shrink-0 select-none">
-        <div className="flex items-center space-x-2 text-[11px]">
-          <span className="font-bold text-emerald-400">{lang === 'ta' ? 'குறுக்குவழிகள்:' : 'Shortcuts:'}</span>
-          <span className="bg-slate-800/90 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px] text-slate-300">[F1: Bill]</span>
-          <span className="bg-slate-800/90 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px] text-slate-300">[F2: Master]</span>
-          <span className="bg-slate-800/90 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px] text-slate-300">[F5: Khata]</span>
-          <span className="bg-slate-800/90 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px] text-slate-300">[F8: Save]</span>
-          <span className="bg-slate-800/90 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px] text-slate-300">[F9: Print]</span>
-          <span className="bg-slate-800/90 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px] text-slate-300">[Alt+S: Search]</span>
-        </div>
-
-        <div className="flex items-center space-x-3 text-[11px] text-slate-400 font-mono">
+      {/* Bottom Status Bar (Clean Minimal Footer) */}
+      <footer className="no-print bg-[#0f172a] text-slate-300 px-4 py-1.5 border-t border-slate-800 text-xs flex items-center justify-end font-sans flex-shrink-0 select-none">
+        <div className="flex items-center space-x-3 text-xs text-slate-400 font-mono">
           <div className="flex items-center space-x-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-slate-300 font-sans font-medium">Terminal Online</span>
           </div>
           <span className="text-slate-700">|</span>
           <span className="font-sans font-semibold text-slate-200">
-            {currentUser ? `${currentUser.name || currentUser.username} (${currentUser.role})` : 'Offline'}
+            {currentUser ? (currentUser.name || currentUser.username) : 'Offline'}
           </span>
         </div>
       </footer>

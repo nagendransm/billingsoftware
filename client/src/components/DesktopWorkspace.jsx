@@ -2,10 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 export default function DesktopWorkspace({ 
   storeSettings = {}, 
-  lang = 'en',
-  onOpenScreen,
-  setBillingMode,
-  currentUser = null
+  lang = 'en'
 }) {
   const [timeStr, setTimeStr] = useState('');
   const [dateStr, setDateStr] = useState('');
@@ -24,13 +21,6 @@ export default function DesktopWorkspace({
   const shopName = lang === 'ta'
     ? (storeSettings.shop_name_ta || storeSettings.shop_name_en || 'மளிகை கடை பில்லிங்')
     : (storeSettings.shop_name_en || storeSettings.shop_name_ta || 'Supermarket Grocery Billing POS');
-
-  const handleOpenBilling = (mode) => {
-    if (setBillingMode) setBillingMode(mode);
-    if (onOpenScreen) onOpenScreen('pos');
-  };
-
-  const isNormalUser = currentUser?.role === 'user';
 
   return (
     <div 
@@ -106,83 +96,8 @@ export default function DesktopWorkspace({
 
       </div>
 
-      {/* Bottom Launcher Bar with Modern Function Keys */}
-      <div className="w-full bg-slate-900/90 backdrop-blur-md border-t border-slate-800 px-4 py-2.5 z-10 flex flex-wrap items-center justify-between gap-2 text-xs">
-        {/* Quick Launch Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2">
-          
-          <button
-            onClick={() => handleOpenBilling('tax_invoice')}
-            className="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm border border-emerald-400/30 flex items-center space-x-2 transition-all hover:scale-[1.02]"
-          >
-            <span className="bg-emerald-950 px-1.5 py-0.5 rounded font-mono text-[10px] text-emerald-300 font-bold">F1</span>
-            <span>{lang === 'ta' ? 'ஜிஎஸ்டி விற்பனை பில்' : 'Sales Bill (GST)'}</span>
-          </button>
-
-          <button
-            onClick={() => handleOpenBilling('estimate')}
-            className="bg-sky-700 hover:bg-sky-600 active:bg-sky-800 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm border border-sky-400/30 flex items-center space-x-2 transition-all hover:scale-[1.02]"
-          >
-            <span className="bg-sky-950 px-1.5 py-0.5 rounded font-mono text-[10px] text-sky-200 font-bold">SO</span>
-            <span>{lang === 'ta' ? 'விற்பனை ஆணை' : 'Sales Order'}</span>
-          </button>
-
-          <button
-            onClick={() => handleOpenBilling('return_bill')}
-            className="bg-rose-700 hover:bg-rose-600 active:bg-rose-800 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm border border-rose-400/30 flex items-center space-x-2 transition-all hover:scale-[1.02]"
-          >
-            <span className="bg-rose-950 px-1.5 py-0.5 rounded font-mono text-[10px] text-rose-200 font-bold">RET</span>
-            <span>{lang === 'ta' ? 'திருப்பல் பில்' : 'Sales Return'}</span>
-          </button>
-
-          {/* Admin & Root Only Master Launchers */}
-          {!isNormalUser && (
-            <>
-              <button
-                onClick={() => onOpenScreen('products')}
-                className="bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 hover:text-white font-semibold px-2.5 py-1.5 rounded-lg border border-slate-700 flex items-center space-x-1.5 transition-colors"
-              >
-                <span className="bg-slate-950 px-1.5 py-0.5 rounded font-mono text-[10px] text-slate-400">F2</span>
-                <span>{lang === 'ta' ? 'பொருட்கள்' : 'Items Master'}</span>
-              </button>
-
-              <button
-                onClick={() => onOpenScreen('invoices')}
-                className="bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 hover:text-white font-semibold px-2.5 py-1.5 rounded-lg border border-slate-700 flex items-center space-x-1.5 transition-colors"
-              >
-                <span className="bg-slate-950 px-1.5 py-0.5 rounded font-mono text-[10px] text-slate-400">F3</span>
-                <span>{lang === 'ta' ? 'விற்பனை ஏடு' : 'Bills Book'}</span>
-              </button>
-
-              <button
-                onClick={() => onOpenScreen('reports')}
-                className="bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 hover:text-white font-semibold px-2.5 py-1.5 rounded-lg border border-slate-700 flex items-center space-x-1.5 transition-colors"
-              >
-                <span className="bg-slate-950 px-1.5 py-0.5 rounded font-mono text-[10px] text-slate-400">F4</span>
-                <span>{lang === 'ta' ? 'ஜிஎஸ்டி அறிக்கை' : 'GST Reports'}</span>
-              </button>
-            </>
-          )}
-
-          {/* Customer Master is accessible to all users */}
-          <button
-            onClick={() => onOpenScreen('customers')}
-            className="bg-amber-700 hover:bg-amber-600 active:bg-amber-800 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm border border-amber-400/30 flex items-center space-x-2 transition-all hover:scale-[1.02]"
-          >
-            <span className="bg-amber-950 px-1.5 py-0.5 rounded font-mono text-[10px] text-amber-200 font-bold">F5</span>
-            <span>{lang === 'ta' ? 'கடன் கணக்கு' : 'Customer Master'}</span>
-          </button>
-        </div>
-
-        {/* Status indicator on bottom right */}
-        <div className="flex items-center space-x-3 text-slate-400 font-mono text-xs ml-auto">
-          <div className="flex items-center space-x-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="text-slate-300 font-semibold">{currentUser ? currentUser.name : 'Terminal Online'}</span>
-          </div>
-        </div>
-
-      </div>
+      {/* Subtle spacer at bottom */}
+      <div className="h-4" />
     </div>
   );
 }
