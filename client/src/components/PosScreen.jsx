@@ -385,8 +385,16 @@ export default function PosScreen({
       }
     };
 
+    const handleTriggerSearch = () => {
+      if (handleOpenSearchModalRef.current) handleOpenSearchModalRef.current();
+    };
+    window.addEventListener('open-past-bills-search', handleTriggerSearch);
+
     window.addEventListener('keydown', handleKeyDown, true);
-    return () => window.removeEventListener('keydown', handleKeyDown, true);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, true);
+      window.removeEventListener('open-past-bills-search', handleTriggerSearch);
+    };
   }, []);
 
   // Alphabetical sorting helper (Tamil Unicode aware & English)

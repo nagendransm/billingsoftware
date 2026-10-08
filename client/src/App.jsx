@@ -6,6 +6,10 @@ import InvoicesScreen from './components/InvoicesScreen';
 import ReportsScreen from './components/ReportsScreen';
 import CustomersScreen from './components/CustomersScreen';
 import SettingsScreen from './components/SettingsScreen';
+import DesktopWorkspace from './components/DesktopWorkspace';
+import LicenceModal from './components/LicenceModal';
+import ShortcutsModal from './components/ShortcutsModal';
+import BarcodeModal from './components/BarcodeModal';
 import ReceiptModal from './components/ReceiptModal';
 import LoginModal from './components/LoginModal';
 import { translations } from './translations';
@@ -20,6 +24,9 @@ export default function App() {
   const [activeInvoice, setActiveInvoice] = useState(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [billingMode, setBillingMode] = useState('tax_invoice'); // 'estimate', 'tax_invoice', 'return_bill'
+  const [showLicenceModal, setShowLicenceModal] = useState(false);
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+  const [showBarcodeModal, setShowBarcodeModal] = useState(false);
 
   // Authentication State (Admin or User) - default to admin so app never renders blank
   const [currentUser, setCurrentUser] = useState(() => {
@@ -200,21 +207,7 @@ export default function App() {
         <LoginModal onLogin={handleLogin} lang={lang} />
       )}
 
-      {/* Top Application Window Bar (Enlarged Title Bar with Shop Name Only) */}
-      <header 
-        className="no-print w-full bg-[#0b0f19] text-white flex items-center justify-between border-b border-slate-800 select-none flex-shrink-0"
-        style={{ height: '42px', WebkitAppRegion: 'drag' }}
-      >
-        <div className="flex items-center px-4 h-full">
-          <h1 className="text-base sm:text-lg font-bold text-white font-tamil tracking-wide whitespace-nowrap leading-none select-none">
-            {titleName}
-          </h1>
-        </div>
-        {/* Right reservation for Windows minimize, maximize, and close overlay buttons */}
-        <div style={{ width: '140px', height: '100%', WebkitAppRegion: 'no-drag' }} />
-      </header>
-
-      {/* Top Navbar */}
+      {/* Top Window Title Bar & Classic Desktop Menu Bar (Matches Screenshot) */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -227,10 +220,22 @@ export default function App() {
         onLogout={handleLogout}
         billingMode={billingMode}
         setBillingMode={setBillingMode}
+        onOpenLicence={() => setShowLicenceModal(true)}
+        onOpenShortcuts={() => setShowShortcutsModal(true)}
+        onOpenBarcode={() => setShowBarcodeModal(true)}
       />
 
-      {/* Main Tab Screen Content */}
-      <main className={`no-print flex-1 min-h-0 relative z-10 ${activeTab === 'pos' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto pb-4'}`}>
+      {/* Main Screen Content */}
+      <main className={`no-print flex-1 min-h-0 relative z-10 ${activeTab === 'pos' || activeTab === 'desktop' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto pb-4'}`}>
+        {activeTab === 'desktop' && (
+          <DesktopWorkspace
+            storeSettings={storeSettings}
+            lang={lang}
+            onOpenScreen={(tab) => setActiveTab(tab)}
+            setBillingMode={setBillingMode}
+          />
+        )}
+
         {activeTab === 'pos' && (
           <PosScreen
             products={products}
@@ -290,24 +295,47 @@ export default function App() {
         )}
       </main>
 
-      {/* Bottom Status Bar */}
-      <footer className="no-print bg-slate-900 text-slate-300 px-3 py-1 border-t border-slate-700 text-[10px] sm:text-[11px] flex flex-wrap items-center justify-between gap-1 font-mono flex-shrink-0">
-        <div className="flex items-center space-x-2">
-          <span className="font-bold text-emerald-400">{lang === 'ta' ? 'குறுக்குவழிகள்:' : 'Shortcuts:'}</span>
-          <span>{lang === 'ta' ? '[F1: பில்லிங்]' : '[F1: Billing]'}</span>
-          <span>{lang === 'ta' ? '[F2: புதிய பில்]' : '[F2: New Bill]'}</span>
-          <span>{lang === 'ta' ? '[F4: தேடுதல்]' : '[F4: Search]'}</span>
-          <span>{lang === 'ta' ? '[F8: சேமி]' : '[F8: Save]'}</span>
-          <span>{lang === 'ta' ? '[F9: அச்சிடு]' : '[F9: Print]'}</span>
-          <span>{lang === 'ta' ? '[F10: நிறுத்து]' : '[F10: Hold]'}</span>
+      {/* Bottom Status Bar (Classic Desktop ERP Style) */}
+      <footer className="no-print bg-[#f0f0f0] text-slate-700 px-3 py-0.5 border-t border-[#c8c8c8] text-xs flex flex-wrap items-center justify-between gap-1 font-sans flex-shrink-0 select-none">
+        <div className="flex items-center space-x-2 text-[11px]">
+          <span className="font-bold text-purple-900">{lang === 'ta' ? 'குறுக்குவழிகள்:' : 'Shortcuts:'}</span>
+          <span className="bg-white px-1 border border-slate-300 rounded font-mono">[F1: Bill]</span>
+          <span className="bg-white px-1 border border-slate-300 rounded font-mono">[F2: New]</span>
+          <span className="bg-white px-1 border border-slate-300 rounded font-mono">[F4: Item]</span>
+          <span className="bg-white px-1 border border-slate-300 rounded font-mono">[F8: Save]</span>
+          <span className="bg-white px-1 border border-slate-300 rounded font-mono">[F9: Print]</span>
+          <span className="bg-white px-1 border border-slate-300 rounded font-mono">[F10: Hold]</span>
+          <span className="bg-white px-1 border border-slate-300 rounded font-mono">[Alt+S: Search]</span>
         </div>
 
-        <div className="text-slate-400 font-sans">
-          {lang === 'ta'
-            ? 'தமிழ்நாடு ஜிஎஸ்டி (State Code: 33) | ஆஃப்லைன் பில்லிங் மென்பொருள்'
-            : 'Tamil Nadu GST (State Code: 33) | Offline POS Billing Software'}
+        <div className="flex items-center space-x-3 text-[11px] text-slate-600">
+          <span>Service Ends on: <strong className="font-mono text-purple-900">29.06.2027</strong></span>
+          <span>|</span>
+          <span className="font-semibold">{currentUser ? `User: ${currentUser.name || currentUser.username}` : 'Ready'}</span>
         </div>
       </footer>
+
+      {/* Modals */}
+      <LicenceModal
+        isOpen={showLicenceModal}
+        onClose={() => setShowLicenceModal(false)}
+        storeSettings={storeSettings}
+        lang={lang}
+      />
+
+      <ShortcutsModal
+        isOpen={showShortcutsModal}
+        onClose={() => setShowShortcutsModal(false)}
+        lang={lang}
+      />
+
+      <BarcodeModal
+        isOpen={showBarcodeModal}
+        onClose={() => setShowBarcodeModal(false)}
+        products={products}
+        storeSettings={storeSettings}
+        lang={lang}
+      />
 
       {/* Receipt Modal (Thermal 80mm/58mm & A4 Tax Invoice) */}
       <ReceiptModal

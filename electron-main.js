@@ -46,12 +46,12 @@ function createWindow() {
     title: 'தமிழ்நாடு மளிகை ஜிஎஸ்டி பில்லிங்',
     icon: path.join(__dirname, 'app.ico'),
     autoHideMenuBar: true,
-    backgroundColor: '#0b0f19',
+    backgroundColor: '#ffffff',
     titleBarStyle: 'hidden',
     titleBarOverlay: {
-      color: '#0b0f19',
-      symbolColor: '#ffffff',
-      height: 42
+      color: '#ffffff',
+      symbolColor: '#1e293b',
+      height: 30
     },
     webPreferences: {
       nodeIntegration: false,
