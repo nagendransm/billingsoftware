@@ -68,6 +68,7 @@ export default function LoginModal({ onLogin, lang = 'en' }) {
             </label>
             <input
               type="text"
+              autoFocus
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}

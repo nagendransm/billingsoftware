@@ -265,10 +265,15 @@ export default function Navbar({
       id: 'barcode',
       label: 'Barcode Generation',
       hotkey: 'b',
-      isDirectButton: true,
-      action: () => {
-        if (onOpenBarcode) onOpenBarcode();
-      }
+      items: [
+        {
+          id: 'barcode_print',
+          label: 'Barcode Label Printing [Alt+B]',
+          action: () => {
+            if (onOpenBarcode) onOpenBarcode();
+          }
+        }
+      ]
     },
     exit: {
       id: 'exit',
@@ -293,48 +298,56 @@ export default function Navbar({
 
   const menuKeys = Object.keys(menuConfig);
 
-  // Keyboard navigation when a dropdown is open
+  // Keyboard navigation for top menu bar and dropdowns
   useEffect(() => {
+    if (!currentUser) return;
+
     const handleKeyDown = (e) => {
-      // Alt + Key combinations to open top menus
-      if (e.altKey) {
-        const char = e.key.toLowerCase();
-        for (const [key, menu] of Object.entries(menuConfig)) {
-          if (menu.hotkey === char) {
+      // 1. If no menu is open:
+      if (!openMenu) {
+        // When on the home page ('desktop'), clicking ENTER or arrow keys opens Transactions menu!
+        if (activeTab === 'desktop') {
+          if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
             e.preventDefault();
             e.stopPropagation();
-            if (menu.isDirectButton) {
-              menu.action();
-              setOpenMenu(null);
-            } else {
-              setOpenMenu(key);
-              setHighlightedIndex(0);
-            }
+            setOpenMenu('transactions');
+            setHighlightedIndex(0);
             return;
           }
         }
+
+        // F10 opens menu bar from anywhere
+        if (e.key === 'F10') {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpenMenu('transactions');
+          setHighlightedIndex(0);
+          return;
+        }
+
+        // Alt + Hotkey combinations
+        if (e.altKey) {
+          const char = e.key.toLowerCase();
+          for (const [key, menu] of Object.entries(menuConfig)) {
+            if (menu.hotkey === char) {
+              e.preventDefault();
+              e.stopPropagation();
+              setOpenMenu(key);
+              setHighlightedIndex(0);
+              return;
+            }
+          }
+        }
+        return;
       }
 
-      if (!openMenu) return;
-
+      // 2. When a menu IS OPEN (Navigate top menu bar with ONLY keyboard up down right left keys):
       const currentMenu = menuConfig[openMenu];
       if (!currentMenu || !currentMenu.items) return;
 
       const validItems = currentMenu.items.filter(it => !it.isDivider);
 
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        setOpenMenu(null);
-      } else if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        e.stopPropagation();
-        setHighlightedIndex(prev => (prev < validItems.length - 1 ? prev + 1 : 0));
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        e.stopPropagation();
-        setHighlightedIndex(prev => (prev > 0 ? prev - 1 : validItems.length - 1));
-      } else if (e.key === 'ArrowRight') {
+      if (e.key === 'ArrowRight') {
         e.preventDefault();
         e.stopPropagation();
         const currentIdx = menuKeys.indexOf(openMenu);
@@ -348,6 +361,18 @@ export default function Navbar({
         const prevKey = menuKeys[(currentIdx - 1 + menuKeys.length) % menuKeys.length];
         setOpenMenu(prevKey);
         setHighlightedIndex(0);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (validItems.length > 0) {
+          setHighlightedIndex(prev => (prev < validItems.length - 1 ? prev + 1 : 0));
+        }
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (validItems.length > 0) {
+          setHighlightedIndex(prev => (prev > 0 ? prev - 1 : validItems.length - 1));
+        }
       } else if (e.key === 'Enter') {
         e.preventDefault();
         e.stopPropagation();
@@ -355,12 +380,16 @@ export default function Navbar({
           validItems[highlightedIndex].action();
           setOpenMenu(null);
         }
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        setOpenMenu(null);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, [openMenu, highlightedIndex]);
+  }, [currentUser, activeTab, openMenu, highlightedIndex]);
 
   return (
     <div ref={menuBarRef} className="no-print w-full flex-shrink-0 select-none relative z-[1000]">
@@ -441,21 +470,6 @@ export default function Navbar({
         {menuKeys.map((menuKey) => {
           const menu = menuConfig[menuKey];
           const isOpen = openMenu === menuKey;
-
-          if (menu.isDirectButton) {
-            return (
-              <button
-                key={menuKey}
-                onClick={menu.action}
-                onMouseEnter={() => {
-                  if (openMenu) setOpenMenu(null);
-                }}
-                className="px-2 py-0.5 hover:bg-purple-700 hover:text-white text-slate-800 rounded-none transition-colors text-xs font-normal whitespace-nowrap"
-              >
-                {menu.label}
-              </button>
-            );
-          }
 
           return (
             <div key={menuKey} className="relative">

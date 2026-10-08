@@ -121,8 +121,13 @@ export default function DesktopWorkspace({
         <h2 className="text-white/95 font-bold text-sm sm:text-base font-tamil mt-3 tracking-wider drop-shadow-md">
           {shopName}
         </h2>
-        <div className="text-cyan-300/80 text-xs font-mono mt-0.5 tracking-widest">
-          {lang === 'ta' ? 'ஜிஎஸ்டி சில்லறை & மொத்த விற்பனை பில்லிங்' : 'GST RETAIL & WHOLESALE BILLING SYSTEM'}
+        {/* Keyboard instruction pill */}
+        <div className="mt-4 px-3 py-1 bg-black/40 border border-cyan-400/30 rounded-full text-[11px] font-mono text-cyan-200/90 flex items-center space-x-2 shadow-inner">
+          <span className="bg-purple-700 text-white px-1.5 py-0.2 rounded font-bold text-[10px]">ENTER</span>
+          <span>{lang === 'ta' ? 'அழுத்தினால் மெனு திறக்கும்' : 'Open Transactions Menu'}</span>
+          <span className="text-white/40">|</span>
+          <span className="text-amber-300 font-bold">← → ↑ ↓</span>
+          <span>{lang === 'ta' ? 'மெனுக்களை நகர்த்தலாம்' : 'Navigate Menus'}</span>
         </div>
       </div>
 

@@ -28,37 +28,26 @@ export default function App() {
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [showBarcodeModal, setShowBarcodeModal] = useState(false);
 
-  // Authentication State (Admin or User) - default to admin so app never renders blank
-  const [currentUser, setCurrentUser] = useState(() => {
+  // Authentication State: Require login every time software opens
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Clear any existing stored user session on startup
+  useEffect(() => {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
-        const saved = localStorage.getItem('pos_user');
-        if (saved) return JSON.parse(saved);
+        localStorage.removeItem('pos_user');
       }
-    } catch (e) {
-      console.warn('localStorage error:', e);
-    }
-    return { id: 1, username: 'admin', role: 'admin', name: 'Administrator' };
-  });
+    } catch (e) {}
+  }, []);
 
   const handleLogin = (user) => {
     setCurrentUser(user);
-    try {
-      localStorage.setItem('pos_user', JSON.stringify(user));
-    } catch (e) {
-      console.error(e);
-    }
-    setActiveTab('pos');
+    setActiveTab('desktop'); // Opens Home/Desktop page upon login
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
-    try {
-      localStorage.removeItem('pos_user');
-    } catch (e) {
-      console.error(e);
-    }
-    setActiveTab('pos');
+    setActiveTab('desktop');
   };
 
   const t = translations[lang] || translations.ta;
