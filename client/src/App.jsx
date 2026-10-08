@@ -337,6 +337,7 @@ export default function App() {
         onClose={() => setIsReceiptOpen(false)}
         lang={lang}
         t={t}
+        customers={customers}
       />
 
       {/* User Management Modal */}

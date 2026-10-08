@@ -103,15 +103,17 @@
   /* Thermal Receipt Container (80mm standard width: ~300px) */
   .thermal-receipt-container {
     display: block !important;
-    width: 76mm !important;
-    max-width: 76mm !important;
-    margin: 0 !important;
-    padding: 2mm 1mm 2mm 1mm !important;
+    width: 68mm !important;
+    max-width: 68mm !important;
+    margin: 0 auto !important;
+    padding: 1.5mm 1mm 1.5mm 1mm !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
     color: #000000 !important;
     background: #ffffff !important;
     border: none !important;
-    font-family: 'Noto Sans Tamil', 'Mukta Malar', 'Nirmala UI', 'Segoe UI', monospace !important;
-    font-size: 11px !important;
+    font-family: 'Nirmala UI', 'Noto Sans Tamil', 'Mukta Malar', 'Segoe UI', monospace !important;
+    font-size: 10.5px !important;
     line-height: 1.25 !important;
     page-break-after: avoid !important;
     page-break-inside: avoid !important;
@@ -123,10 +125,10 @@
 
   /* 58mm thermal width */
   .thermal-receipt-container.width-58mm {
-    width: 52mm !important;
-    max-width: 52mm !important;
-    font-size: 9.5px !important;
-    padding: 2mm 1mm 2mm 1mm !important;
+    width: 48mm !important;
+    max-width: 48mm !important;
+    font-size: 9px !important;
+    padding: 1mm 1mm 1mm 1mm !important;
   }
 
   /* A4 Invoice Container */

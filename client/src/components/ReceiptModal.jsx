@@ -7,7 +7,8 @@ export default function ReceiptModal({
   isOpen,
   onClose,
   lang,
-  t
+  t,
+  customers = []
 }) {
   const [upiQrUrl, setUpiQrUrl] = useState('');
   const [printFormat, setPrintFormat] = useState('thermal'); // 'thermal' or 'a4'
@@ -30,6 +31,85 @@ export default function ReceiptModal({
   const handlePrint = () => {
     window.print();
   };
+
+  // Helper to format integer amounts (NO DECIMALS, NO DOT!)
+  const formatInt = (val) => {
+    if (val === null || val === undefined || val === '') return '0';
+    const num = typeof val === 'number' ? val : parseFloat(val);
+    if (isNaN(num)) return '0';
+    return Math.round(num).toString();
+  };
+
+  // Helper to format quantity cleanly
+  const formatQty = (qty) => {
+    const n = Number(qty);
+    if (isNaN(n)) return '1';
+    if (n % 1 === 0) return n.toString();
+    return n.toString();
+  };
+
+  // Helper to get Tamil unit abbreviation
+  const getUnitTa = (unit) => {
+    if (!unit) return '';
+    const u = String(unit).trim().toLowerCase();
+    if (u === 'kg') return 'கி';
+    if (u === 'g' || u === 'gm') return 'கி.ரா';
+    if (u === 'l' || u === 'ltr' || u === 'liter' || u === 'litre') return 'லி';
+    if (u === 'ml') return 'மி.லி';
+    if (u === 'pcs' || u === 'piece' || u === 'pc') return 'பீஸ்';
+    if (u === 'pkt' || u === 'packet') return 'பாக்கெட்';
+    if (u === 'box') return 'பாக்ஸ்';
+    if (u === 'bag') return 'பை';
+    if (u === 'bundle') return 'கட்டு';
+    return unit;
+  };
+
+  // Helper to format date like 07.10.2026
+  const formatReceiptDate = (dateStr) => {
+    if (!dateStr) return '';
+    const parts = String(dateStr).split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}.${parts[1]}.${parts[0]}`;
+    }
+    return dateStr;
+  };
+
+  // Helper to format time like 04:51 P.m
+  const formatReceiptTime = (timeStr) => {
+    if (!timeStr) {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'P.m' : 'A.m';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+    }
+    const parts = String(timeStr).split(':');
+    if (parts.length >= 2) {
+      let hours = parseInt(parts[0], 10);
+      const minutes = parts[1].padStart(2, '0');
+      const ampm = hours >= 12 ? 'P.m' : 'A.m';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+    }
+    return timeStr;
+  };
+
+  // Previous Balance for Credit Bills (Khata)
+  const customerObj = customers?.find(c => String(c.id) === String(invoice.customer_id));
+  const previousBalance = invoice.previous_balance !== undefined && invoice.previous_balance !== null
+    ? Number(invoice.previous_balance)
+    : (invoice.payment_mode === 'credit' && customerObj
+        ? Number(customerObj.credit_balance || 0)
+        : (invoice.customer_balance ? Number(invoice.customer_balance) : 0));
+  const hasPreviousBalance = previousBalance > 0;
+
+  const hasCustomer = invoice.customer_name && 
+    invoice.customer_name !== 'Cash' && 
+    invoice.customer_name !== 'Retail Cash Customer / ரொக்க வாடிக்கையாளர்' &&
+    invoice.customer_name !== 'வாடிக்கையாளர்';
 
   return (
     <div className="receipt-modal-overlay fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-2">
@@ -78,158 +158,161 @@ export default function ReceiptModal({
           {/* ======================================================== */}
           {printFormat === 'thermal' && (
             <div 
-              className={`thermal-receipt-container bg-white p-3 text-black border border-slate-300 ${
-                thermalWidth === '58mm' ? 'width-58mm max-w-[240px]' : 'max-w-[310px]'
+              className={`thermal-receipt-container bg-white text-black border border-slate-300 mx-auto ${
+                thermalWidth === '58mm' ? 'width-58mm max-w-[220px]' : 'max-w-[290px]'
               }`}
-              style={{ width: thermalWidth === '58mm' ? '54mm' : '78mm' }}
+              style={{ 
+                width: thermalWidth === '58mm' ? '48mm' : '68mm',
+                padding: '2mm 1.5mm',
+                boxSizing: 'border-box'
+              }}
             >
               {/* Header */}
-              <div className="text-center pb-1.5 border-b border-dashed border-black">
+              <div className="text-center pb-1">
                 {storeSettings.shop_name_ta && (
-                  <h2 className="text-sm font-bold font-tamil leading-tight">
+                  <h2 className="text-sm font-black font-tamil leading-tight tracking-wide">
                     {storeSettings.shop_name_ta}
                   </h2>
                 )}
                 {storeSettings.shop_name_en && (
-                  <h3 className="text-xs font-bold leading-tight">
+                  <h3 className="text-xs font-bold leading-tight mt-0.5">
                     {storeSettings.shop_name_en}
                   </h3>
                 )}
-                <div className="mt-1 text-[11px] font-bold border border-black py-0.5 uppercase tracking-wide font-tamil">
-                  {isReturn ? 'RETURN BILL / ரிட்டன் பில்' : isEstimate ? 'SALES ORDER / விற்பனை ஆணை' : 'TAX INVOICE / வரி விலைப்பட்டியல்'}
-                </div>
                 {(storeSettings.address_ta || storeSettings.address_en) && (
-                  <p className="text-[10px] mt-0.5">{storeSettings.address_ta || storeSettings.address_en}</p>
+                  <p className="text-[10px] leading-tight mt-0.5 font-tamil">
+                    {storeSettings.address_ta || storeSettings.address_en}
+                  </p>
                 )}
                 {storeSettings.phone && (
-                  <p className="text-[10px] font-semibold">Ph: {storeSettings.phone}</p>
+                  <p className="text-[10px] font-bold font-mono tracking-wide mt-0.5">
+                    CEL- {storeSettings.phone}
+                  </p>
                 )}
-                {!isEstimate && !isReturn && storeSettings.gstin && (
-                  <div className="text-[10px] font-mono mt-0.5">
-                    <strong>GSTIN:</strong> {storeSettings.gstin} | TN-33
+                <div className="mt-1 text-[11px] font-bold tracking-wider uppercase font-tamil">
+                  {isReturn 
+                    ? 'ரிட்டன் பில்' 
+                    : isEstimate 
+                      ? 'ESTIMATE' 
+                      : (invoice.payment_mode === 'credit' ? 'CREDIT' : 'CASH')}
+                </div>
+              </div>
+
+              <div className="border-b border-dashed border-black my-1" />
+
+              {/* Meta */}
+              <div className="text-[10px] leading-tight space-y-0.5 font-tamil">
+                <div className="flex justify-between items-center">
+                  <span>
+                    <span className="font-bold">எண் :</span>{' '}
+                    <span className="font-mono font-bold">{invoice.invoice_no}</span>
+                  </span>
+                  <span>
+                    <span className="font-bold">நாள் :</span>{' '}
+                    <span className="font-mono">{formatReceiptDate(invoice.date)}</span>
+                  </span>
+                </div>
+                {hasCustomer && (
+                  <div className="flex justify-between items-center pt-0.5">
+                    <span className="truncate pr-1">
+                      <span className="font-bold">திரு :</span> {invoice.customer_name}
+                    </span>
+                    {invoice.customer_phone && (
+                      <span className="whitespace-nowrap font-mono text-[9.5px]">
+                        PHONE : {invoice.customer_phone}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
 
-              {/* Meta */}
-              <div className="py-1 text-[10px] border-b border-dashed border-black">
-                <div className="flex justify-between">
-                  <span><strong>Bill:</strong> {invoice.invoice_no}</span>
-                  <span>{invoice.date} {invoice.time}</span>
-                </div>
-                {invoice.customer_name && invoice.customer_name !== 'Retail Cash Customer / ரொக்க வாடிக்கையாளர்' && (
-                  <div><strong>Cust:</strong> {invoice.customer_name} ({invoice.customer_phone || ''})</div>
-                )}
-              </div>
+              <div className="border-b border-dashed border-black my-1" />
 
-              {/* Items Table */}
-              <table className="w-full text-[10px] my-1 text-left border-collapse">
+              {/* Items Table: MRP | பொருள் | அளவு | மதிப்பு */}
+              <table className="w-full text-[10px] border-collapse table-fixed my-0.5">
+                <colgroup>
+                  <col style={{ width: '16%' }} />
+                  <col style={{ width: '50%' }} />
+                  <col style={{ width: '16%' }} />
+                  <col style={{ width: '18%' }} />
+                </colgroup>
                 <thead>
-                  <tr className="border-b border-black font-bold">
-                    <th className="py-0.5">Item</th>
-                    <th className="py-0.5 text-center">Qty</th>
-                    <th className="py-0.5 text-right">Rate</th>
-                    <th className="py-0.5 text-right">Amt</th>
+                  <tr className="border-b border-dashed border-black font-bold">
+                    <th className="py-0.5 text-left font-mono">MRP</th>
+                    <th className="py-0.5 text-left font-tamil">பொருள்</th>
+                    <th className="py-0.5 text-center font-tamil">அளவு</th>
+                    <th className="py-0.5 text-right font-tamil pr-1">மதிப்பு</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-dotted divide-black">
+                <tbody className="divide-y divide-dotted divide-gray-300">
                   {invoice.items && invoice.items.map((it, idx) => (
                     <tr key={idx} className="align-top">
-                      <td className="py-0.5 pr-1">
-                        <div className="font-bold font-product">{it.name_ta}</div>
-                        <div className="text-[8.5px] text-gray-600 font-mono">
-                          HSN:{it.hsn_code} {!isEstimate && !isReturn ? `GST:${it.gst_rate}%` : isReturn ? '[RETURN]' : ''}
+                      <td className="py-1 text-left font-mono font-semibold">
+                        {formatInt(it.mrp || it.unit_price)}
+                      </td>
+                      <td className="py-1 pr-1 text-left">
+                        <div className="font-bold font-product leading-tight break-words line-clamp-2">
+                          {it.name_ta || it.name_en}
                         </div>
                       </td>
-                      <td className="py-0.5 text-center font-mono">{it.quantity} {it.unit}</td>
-                      <td className="py-0.5 text-right font-mono">{Number(it.unit_price).toFixed(2)}</td>
-                      <td className="py-0.5 text-right font-mono font-bold">{Number(it.total).toFixed(2)}</td>
+                      <td className="py-1 text-center font-mono whitespace-nowrap">
+                        {formatQty(it.quantity)} {getUnitTa(it.unit)}
+                      </td>
+                      <td className="py-1 text-right font-mono font-bold pr-1">
+                        {formatInt(it.total)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
-              {/* Totals */}
-              <div className="border-t border-dashed border-black pt-1 text-[10.5px] space-y-0.5">
-                {!isEstimate && !isReturn && (
-                  <div className="flex justify-between">
-                    <span>வரிக்குட்பட்டது (Taxable):</span>
-                    <span className="font-mono">₹ {Number(invoice.subtotal_taxable).toFixed(2)}</span>
-                  </div>
-                )}
-                {!isEstimate && !isReturn && invoice.total_cgst > 0 && (
-                  <div className="flex justify-between">
-                    <span>CGST (மத்திய வரி):</span>
-                    <span className="font-mono">₹ {Number(invoice.total_cgst).toFixed(2)}</span>
-                  </div>
-                )}
-                {!isEstimate && !isReturn && invoice.total_sgst > 0 && (
-                  <div className="flex justify-between">
-                    <span>SGST (மாநில வரி):</span>
-                    <span className="font-mono">₹ {Number(invoice.total_sgst).toFixed(2)}</span>
-                  </div>
-                )}
-                {invoice.round_off !== 0 && (
-                  <div className="flex justify-between">
-                    <span>Round Off:</span>
-                    <span className="font-mono">{invoice.round_off}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between text-sm font-extrabold border-t-2 border-b-2 border-black py-1 my-0.5">
-                  <span>
-                    {isReturn 
-                      ? 'REFUND (திருப்பிய தொகை):' 
-                      : isEstimate 
-                        ? 'NET TOTAL (மொத்தத் தொகை):' 
-                        : 'TOTAL (மொத்தம்):'}
+              {/* Totals Section */}
+              <div className="border-t border-dashed border-black pt-1 space-y-0.5 text-[10.5px]">
+                <div className="flex justify-between items-center font-bold">
+                  <span className="font-mono">Items : {invoice.items?.length || 0}</span>
+                  <span className="font-tamil pr-1">
+                    {isReturn ? 'திருப்பிய தொகை' : 'மொத்தம்'} ₹ {formatInt(invoice.grand_total)}
                   </span>
-                  <span>₹ {Number(invoice.grand_total).toFixed(2)}</span>
                 </div>
+
+                {hasPreviousBalance && (
+                  <>
+                    <div className="flex justify-between items-center pt-0.5 text-[10.5px]">
+                      <span className="font-tamil">முன் பாக்கி</span>
+                      <span className="font-mono font-bold pr-1">{formatInt(previousBalance)}</span>
+                    </div>
+                    <div className="border-b border-dashed border-black my-0.5" />
+                    <div className="flex justify-between items-center text-xs font-black">
+                      <span className="font-tamil">மொத்தம் :</span>
+                      <span className="font-mono pr-1">
+                        {formatInt(Number(invoice.grand_total) + Number(previousBalance))}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
 
-              {/* HSN Summary (Only for GST Tax Invoices) */}
-              {!isEstimate && !isReturn && invoice.hsn_summary && invoice.hsn_summary.length > 0 && (
-                <div className="mt-1 pt-1 border-t border-dotted border-black text-[8px]">
-                  <table className="w-full text-center border-collapse">
-                    <thead>
-                      <tr className="border-b border-black font-bold">
-                        <th>HSN</th>
-                        <th>Taxable</th>
-                        <th>CGST</th>
-                        <th>SGST</th>
-                        <th>Tax</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {invoice.hsn_summary.map((row, idx) => (
-                        <tr key={idx}>
-                          <td>{row.hsn_code} ({row.gst_rate}%)</td>
-                          <td>{row.taxable_value}</td>
-                          <td>{row.cgst_amount}</td>
-                          <td>{row.sgst_amount}</td>
-                          <td className="font-bold">{row.total_tax}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+              <div className="border-b border-dashed border-black my-1" />
 
-              {/* QR Code */}
+              {/* Time */}
+              <div className="text-left text-[10px] font-mono py-0.5">
+                <span>{formatReceiptTime(invoice.time)}</span>
+              </div>
+
+              {/* QR Code (if configured) */}
               {!isReturn && upiQrUrl && (
-                <div className="text-center my-1.5 pt-1 border-t border-dashed border-black flex flex-col items-center">
-                  <img src={upiQrUrl} alt="UPI QR" className="w-20 h-20 border border-black p-0.5" />
-                  <span className="text-[8px] font-bold mt-0.5">Scan to Pay via GPay / PhonePe</span>
+                <div className="text-center my-1 pt-1 border-t border-dashed border-black flex flex-col items-center">
+                  <img src={upiQrUrl} alt="UPI QR" className="w-16 h-16 border border-black p-0.5" />
+                  <span className="text-[8px] font-bold mt-0.5">Scan to Pay via UPI</span>
                 </div>
               )}
 
               {/* Footer */}
-              <div className="text-center pt-1 border-t border-dashed border-black text-[9px]">
+              <div className="text-center pt-1 border-t border-dashed border-black text-[9.5px]">
                 <p className="font-bold font-tamil">{storeSettings.receipt_footer_ta || 'நன்றி! மீண்டும் வருக!'}</p>
-                <p className="text-[8px] text-gray-500">
-                  {isReturn ? 'Return Receipt - Stock Updated' : isEstimate ? 'Sales Order' : 'GST Tax Invoice'}
-                </p>
+                {storeSettings.receipt_footer_en && (
+                  <p className="text-[8px] text-gray-500 mt-0.5">{storeSettings.receipt_footer_en}</p>
+                )}
               </div>
             </div>
           )}

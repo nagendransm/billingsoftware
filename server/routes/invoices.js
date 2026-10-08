@@ -242,6 +242,13 @@ router.post('/', (req, res) => {
       }
     }
 
+    // Capture previous balance before updating customer credit balance
+    let previousBalance = 0;
+    if (customer_id) {
+      const custRow = db.prepare('SELECT credit_balance FROM customers WHERE id = ?').get(customer_id);
+      if (custRow) previousBalance = Number(custRow.credit_balance || 0);
+    }
+
     // Handle credit ledger if payment mode is credit (Khata / கடன்)
     if (payment_mode === 'credit' && customer_id) {
       if (bill_type === 'return_bill') {
@@ -275,6 +282,7 @@ router.post('/', (req, res) => {
       success: true,
       data: {
         ...createdInvoice,
+        previous_balance: previousBalance,
         items: invoiceItems,
         hsn_summary: hsnSummary,
         amount_in_words: amountInWords
@@ -367,10 +375,21 @@ router.get('/:id', (req, res) => {
       settings[r.key] = r.value;
     }
 
+    let previousBalance = 0;
+    if (invoice.customer_id) {
+      const custRow = db.prepare('SELECT credit_balance FROM customers WHERE id = ?').get(invoice.customer_id);
+      if (custRow) {
+        previousBalance = invoice.payment_mode === 'credit'
+          ? Math.max(0, Number(custRow.credit_balance || 0) - Number(invoice.grand_total || 0))
+          : Number(custRow.credit_balance || 0);
+      }
+    }
+
     res.json({
       success: true,
       data: {
         ...invoice,
+        previous_balance: previousBalance,
         items,
         hsn_summary: hsnSummary,
         amount_in_words: amountInWords,

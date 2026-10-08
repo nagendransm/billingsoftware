@@ -818,6 +818,9 @@ export default function PosScreen({
     }
 
     try {
+      const selectedCust = customers.find(c => String(c.id) === String(selectedCustomerId));
+      const prevBal = selectedCust ? Number(selectedCust.credit_balance || 0) : 0;
+
       const payload = {
         bill_type: billingMode,
         customer_id: selectedCustomerId || null,
@@ -826,6 +829,7 @@ export default function PosScreen({
         customer_gstin: customerGstin,
         place_of_supply: customerGstin && !customerGstin.startsWith('33') ? 'Other State' : '33-Tamil Nadu',
         payment_mode: paymentMode,
+        previous_balance: prevBal,
         received_amount: paymentMode === 'cash' ? (parseFloat(cashReceived) || billSummary.grandTotal) : billSummary.grandTotal,
         additional_discount: Number(additionalDiscount) || 0,
         notes,
