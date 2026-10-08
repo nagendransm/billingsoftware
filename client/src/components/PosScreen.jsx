@@ -99,12 +99,12 @@ export default function PosScreen({
   // Next Bill Number calculation
   const nextBillNo = React.useMemo(() => {
     if (billingMode === 'estimate') {
-      const lastEst = pastInvoices.find(inv => inv.bill_type === 'estimate' || inv.invoice_no?.startsWith('EST/'));
+      const lastEst = pastInvoices.find(inv => inv.bill_type === 'estimate' || inv.invoice_no?.startsWith('SO/') || inv.invoice_no?.startsWith('EST/'));
       if (lastEst && lastEst.invoice_no) {
         const m = lastEst.invoice_no.match(/(\d+)$/);
-        if (m) return `EST/${parseInt(m[1], 10) + 1}`;
+        if (m) return `SO/${parseInt(m[1], 10) + 1}`;
       }
-      return 'EST/1001';
+      return 'SO/1001';
     }
     if (billingMode === 'return_bill') {
       const lastRet = pastInvoices.find(inv => inv.bill_type === 'return_bill' || inv.invoice_no?.startsWith('RET/'));
@@ -925,13 +925,13 @@ export default function PosScreen({
                 onClick={() => setBillingMode && setBillingMode('estimate')}
                 className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors flex items-center space-x-1 whitespace-nowrap ${
                   billingMode === 'estimate'
-                    ? 'bg-amber-500 text-white border-amber-600 shadow-xs ring-1 ring-amber-300'
+                    ? 'bg-purple-700 text-white border-purple-800 shadow-xs ring-1 ring-purple-300'
                     : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
                 }`}
-                title={lang === 'ta' ? 'விற்பனை மதிப்பீடு (வரி இல்லை)' : 'Sales Bill (Estimate - No Tax)'}
+                title="Sales Order"
               >
-                <span>📝</span>
-                <span>{lang === 'ta' ? 'மதிப்பீடு (வரி இல்லை)' : 'Estimate (No Tax)'}</span>
+                <span>📦</span>
+                <span>{lang === 'ta' ? 'விற்பனை ஆணை' : 'Sales Order'}</span>
               </button>
 
               <button
@@ -942,10 +942,10 @@ export default function PosScreen({
                     ? 'bg-emerald-600 text-white border-emerald-700 shadow-xs ring-1 ring-emerald-300'
                     : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
                 }`}
-                title={lang === 'ta' ? 'ஜிஎஸ்டி விற்பனை பில் (வரியுடன்)' : 'GST Sales Bill (With Tax)'}
+                title="Sales Bill"
               >
                 <span>🧾</span>
-                <span>{lang === 'ta' ? 'ஜிஎஸ்டி பில் (வரியுடன்)' : 'GST Bill (With Tax)'}</span>
+                <span>{lang === 'ta' ? 'விற்பனை பில்' : 'Sales Bill'}</span>
               </button>
 
               <button
@@ -956,10 +956,10 @@ export default function PosScreen({
                     ? 'bg-rose-600 text-white border-rose-700 shadow-xs ring-1 ring-rose-300'
                     : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
                 }`}
-                title={lang === 'ta' ? 'பொருட்கள் திருப்பல் பில் (வரி இல்லை, சரக்கு கூடும்)' : 'Return Bill (No Tax, Restores Stock)'}
+                title="Sales Return"
               >
                 <span>🔄</span>
-                <span>{lang === 'ta' ? 'திருப்பல் பில் (சரக்கு கூடும்)' : 'Return Bill (Stock Update)'}</span>
+                <span>{lang === 'ta' ? 'திருப்பல் பில்' : 'Sales Return'}</span>
               </button>
             </div>
           )}
@@ -1148,17 +1148,15 @@ export default function PosScreen({
           )}
 
           {billingMode === 'estimate' && (
-            <div className="bg-amber-600 text-white px-3 py-1.5 rounded flex items-center justify-between text-xs font-bold shadow-xs flex-shrink-0 animate-fade-in border border-amber-700">
+            <div className="bg-purple-800 text-white px-3 py-1 rounded flex items-center justify-between text-xs font-semibold shadow-xs flex-shrink-0 animate-fade-in border border-purple-900">
               <div className="flex items-center space-x-2">
-                <span className="text-base">📝</span>
+                <span className="text-sm">📦</span>
                 <span className="font-tamil">
-                  {lang === 'ta' 
-                    ? 'விற்பனை மதிப்பீடு முறை: வாடிக்கையாளருக்கு மதிப்பீடு வழங்க பயன்படுகிறது. வரி சேர்க்கப்படாது (No Tax).' 
-                    : 'ESTIMATE BILL MODE: For customer price estimate. No GST tax applied (0% Tax).'}
+                  {lang === 'ta' ? 'விற்பனை ஆணை பதிவு முறை (Sales Order Mode)' : 'SALES ORDER BILLING MODE'}
                 </span>
               </div>
-              <span className="bg-amber-800 text-white px-2 py-0.5 rounded text-[10px] font-mono border border-amber-400 whitespace-nowrap">
-                {lang === 'ta' ? 'வரி இல்லை' : 'No Tax (0%)'}
+              <span className="bg-purple-950 text-purple-200 px-2 py-0.2 rounded text-[10px] font-mono border border-purple-700 whitespace-nowrap">
+                SO
               </span>
             </div>
           )}
@@ -1650,12 +1648,12 @@ export default function PosScreen({
               {billingMode === 'return_bill'
                 ? (lang === 'ta' ? 'திருப்பிய தொகை (REFUND):' : 'REFUND TOTAL:')
                 : billingMode === 'estimate'
-                  ? (lang === 'ta' ? 'மதிப்பீட்டுத் தொகை (ESTIMATE):' : 'ESTIMATE TOTAL:')
+                  ? (lang === 'ta' ? 'மொத்தத் தொகை (NET TOTAL):' : 'NET TOTAL:')
                   : (lang === 'ta' ? 'மொத்தத் தொகை (NET PAYABLE):' : 'GRAND TOTAL:')
               }
             </span>
             <span className={`text-xl sm:text-2xl font-extrabold font-mono ${
-              billingMode === 'return_bill' ? 'text-rose-400' : billingMode === 'estimate' ? 'text-amber-400' : 'text-emerald-400'
+              billingMode === 'return_bill' ? 'text-rose-400' : billingMode === 'estimate' ? 'text-purple-300' : 'text-emerald-400'
             }`}>
               ₹ {Number(displaySummary.grandTotal).toFixed(2)}
             </span>
@@ -1688,14 +1686,14 @@ export default function PosScreen({
                     billingMode === 'return_bill'
                       ? 'bg-rose-700 hover:bg-rose-800'
                       : billingMode === 'estimate'
-                        ? 'bg-amber-600 hover:bg-amber-700'
+                        ? 'bg-purple-700 hover:bg-purple-800'
                         : 'bg-emerald-700 hover:bg-emerald-800'
                   }`}
                 >
                   {billingMode === 'return_bill'
                     ? (lang === 'ta' ? 'திருப்பல் அச்சிடு [F9]' : 'Save & Print Return [F9]')
                     : billingMode === 'estimate'
-                      ? (lang === 'ta' ? 'மதிப்பீடு அச்சிடு [F9]' : 'Save & Print Estimate [F9]')
+                      ? (lang === 'ta' ? 'ஆணை அச்சிடு [F9]' : 'Save & Print [F9]')
                       : (lang === 'ta' ? 'அச்சிடு & சேமி [F9]' : 'Save & Print [F9]')
                   }
                 </button>
@@ -1708,7 +1706,7 @@ export default function PosScreen({
                   {billingMode === 'return_bill'
                     ? (lang === 'ta' ? 'திருப்பல் சேமி [F8]' : 'Save Return [F8]')
                     : billingMode === 'estimate'
-                      ? (lang === 'ta' ? 'மதிப்பீடு சேமி [F8]' : 'Save Estimate [F8]')
+                      ? (lang === 'ta' ? 'ஆணை சேமி [F8]' : 'Save [F8]')
                       : (lang === 'ta' ? 'சேமிக்க மட்டும் [F8]' : 'Save Only [F8]')
                   }
                 </button>

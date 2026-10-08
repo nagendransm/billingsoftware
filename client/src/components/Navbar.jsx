@@ -25,8 +25,8 @@ export default function Navbar({
 
   const currentYear = new Date().getFullYear();
 
-  // Mode code for center tag in Title Bar: { T } for Tax, { E } for Estimate, { R } for Return
-  const modeCode = billingMode === 'return_bill' ? 'R' : billingMode === 'estimate' ? 'E' : 'T';
+  // Mode code for center tag in Title Bar: { T } for Tax, { SO } for Sales Order, { R } for Return
+  const modeCode = billingMode === 'return_bill' ? 'R' : billingMode === 'estimate' ? 'SO' : 'T';
 
   // Close menus on outside click
   useEffect(() => {
@@ -62,8 +62,9 @@ export default function Navbar({
           label: 'Sales Order',
           underlined: 'O',
           action: () => {
+            if (setBillingMode) setBillingMode('estimate');
             setActiveTab('pos');
-            window.dispatchEvent(new CustomEvent('open-held-bills'));
+            setTimeout(() => window.dispatchEvent(new CustomEvent('focus-pos-search')), 50);
           }
         },
         {
@@ -96,15 +97,6 @@ export default function Navbar({
           }
         },
         { isDivider: true },
-        {
-          id: 'sales_estimate',
-          label: 'Sales Estimate (No Tax)',
-          action: () => {
-            if (setBillingMode) setBillingMode('estimate');
-            setActiveTab('pos');
-            setTimeout(() => window.dispatchEvent(new CustomEvent('focus-pos-search')), 50);
-          }
-        },
         {
           id: 'past_bills_search',
           label: 'Past Bills Search [Alt+S]',

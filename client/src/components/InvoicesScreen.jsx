@@ -102,8 +102,8 @@ export default function InvoicesScreen({
             className="px-2 py-1.5 border border-slate-400 rounded focus:outline-none font-bold bg-white text-xs"
           >
             <option value="">{lang === 'ta' ? 'அனைத்து பில்கள் (All)' : 'All Bill Types'}</option>
-            <option value="tax_invoice">{lang === 'ta' ? 'ஜிஎஸ்டி விற்பனை பில் (With Tax)' : 'GST Sales Bill (With Tax)'}</option>
-            <option value="estimate">{lang === 'ta' ? 'விற்பனை மதிப்பீடு (No Tax)' : 'Estimate Bill (No Tax)'}</option>
+            <option value="tax_invoice">{lang === 'ta' ? 'ஜிஎஸ்டி விற்பனை பில் (Sales Bill)' : 'GST Sales Bill'}</option>
+            <option value="estimate">{lang === 'ta' ? 'விற்பனை ஆணை (Sales Order)' : 'Sales Order'}</option>
             <option value="return_bill">{lang === 'ta' ? 'பொருட்கள் திருப்பல் பில் (Return)' : 'Return Bill (Sales Return)'}</option>
           </select>
 
@@ -163,8 +163,8 @@ export default function InvoicesScreen({
                           </span>
                         )}
                         {isEstimate && (
-                          <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-1 py-0.2 rounded border border-amber-300">
-                            {lang === 'ta' ? 'மதிப்பீடு' : 'EST'}
+                          <span className="text-[9px] bg-purple-100 text-purple-800 font-bold px-1 py-0.2 rounded border border-purple-300">
+                            {lang === 'ta' ? 'ஆணை' : 'SO'}
                           </span>
                         )}
                         {!isReturn && !isEstimate && (

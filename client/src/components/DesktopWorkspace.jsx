@@ -140,10 +140,10 @@ export default function DesktopWorkspace({
 
           <button
             onClick={() => handleOpenBilling('estimate')}
-            className="bg-amber-800 hover:bg-amber-700 active:bg-amber-900 text-white font-bold px-2 py-1 rounded shadow-md border border-amber-500/50 flex items-center space-x-1.5 transition-colors"
+            className="bg-purple-900 hover:bg-purple-800 active:bg-purple-950 text-white font-bold px-2.5 py-1 rounded shadow-md border border-purple-500/50 flex items-center space-x-1.5 transition-colors"
           >
-            <span className="bg-amber-950 px-1 py-0.2 rounded font-mono text-[10px] text-amber-300">EST</span>
-            <span>{lang === 'ta' ? 'மதிப்பீடு பில்' : 'Sales Estimate'}</span>
+            <span className="bg-black/40 px-1 py-0.2 rounded font-mono text-[10px] text-purple-200">SO</span>
+            <span>{lang === 'ta' ? 'விற்பனை ஆணை' : 'Sales Order'}</span>
           </button>
 
           <button

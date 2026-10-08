@@ -40,9 +40,9 @@ export default function ReceiptModal({
           <div className="font-bold font-mono flex items-center space-x-2">
             <span>{invoice.invoice_no} ({invoice.date})</span>
             <span className={`px-1.5 py-0.2 rounded text-[10px] font-sans font-bold uppercase ${
-              isReturn ? 'bg-rose-700 text-white' : isEstimate ? 'bg-amber-600 text-white' : 'bg-emerald-700 text-white'
+              isReturn ? 'bg-rose-700 text-white' : isEstimate ? 'bg-purple-700 text-white' : 'bg-emerald-700 text-white'
             }`}>
-              {isReturn ? 'Return Bill' : isEstimate ? 'Estimate' : 'Tax Invoice'}
+              {isReturn ? 'Return Bill' : isEstimate ? 'Sales Order' : 'Tax Invoice'}
             </span>
           </div>
 
@@ -96,7 +96,7 @@ export default function ReceiptModal({
                   </h3>
                 )}
                 <div className="mt-1 text-[11px] font-bold border border-black py-0.5 uppercase tracking-wide font-tamil">
-                  {isReturn ? 'RETURN BILL / பொருட்கள் திருப்பல் ரசீது' : isEstimate ? 'ESTIMATE / விற்பனை மதிப்பீடு' : 'TAX INVOICE / வரி விலைப்பட்டியல்'}
+                  {isReturn ? 'RETURN BILL / பொருட்கள் திருப்பல் ரசீது' : isEstimate ? 'SALES ORDER / விற்பனை ஆணை' : 'TAX INVOICE / வரி விலைப்பட்டியல்'}
                 </div>
                 {(storeSettings.address_ta || storeSettings.address_en) && (
                   <p className="text-[10px] mt-0.5">{storeSettings.address_ta || storeSettings.address_en}</p>
@@ -181,7 +181,7 @@ export default function ReceiptModal({
                     {isReturn 
                       ? 'REFUND (திருப்பிய தொகை):' 
                       : isEstimate 
-                        ? 'ESTIMATE (மதிப்பீட்டுத் தொகை):' 
+                        ? 'NET TOTAL (மொத்தத் தொகை):' 
                         : 'TOTAL (மொத்தம்):'}
                   </span>
                   <span>₹ {Number(invoice.grand_total).toFixed(2)}</span>
@@ -228,7 +228,7 @@ export default function ReceiptModal({
               <div className="text-center pt-1 border-t border-dashed border-black text-[9px]">
                 <p className="font-bold font-tamil">{storeSettings.receipt_footer_ta || 'நன்றி! மீண்டும் வருக!'}</p>
                 <p className="text-[8px] text-gray-500">
-                  {isReturn ? 'Return Receipt - Stock Updated' : isEstimate ? 'Estimate Only - Not a Tax Invoice' : 'GST Tax Invoice'}
+                  {isReturn ? 'Return Receipt - Stock Updated' : isEstimate ? 'Sales Order' : 'GST Tax Invoice'}
                 </p>
               </div>
             </div>
@@ -244,7 +244,7 @@ export default function ReceiptModal({
                   {storeSettings.shop_name_ta && <h2 className="text-base font-bold font-tamil">{storeSettings.shop_name_ta}</h2>}
                   {storeSettings.shop_name_en && <h1 className="text-sm font-bold">{storeSettings.shop_name_en}</h1>}
                   <div className="text-xs font-bold border border-black px-1.5 py-0.5 inline-block uppercase mt-1">
-                    {isReturn ? 'RETURN BILL / பொருட்கள் திருப்பல் ரசீது' : isEstimate ? 'ESTIMATE / விற்பனை மதிப்பீடு' : 'TAX INVOICE / வரி விலைப்பட்டியல்'}
+                    {isReturn ? 'RETURN BILL / பொருட்கள் திருப்பல் ரசீது' : isEstimate ? 'SALES ORDER / விற்பனை ஆணை' : 'TAX INVOICE / வரி விலைப்பட்டியல்'}
                   </div>
                   {(storeSettings.address_ta || storeSettings.address_en) && (
                     <p className="text-[11px]">{storeSettings.address_ta || storeSettings.address_en}</p>
