@@ -52,7 +52,7 @@ export default function Navbar({
   }, []);
 
   // Menu Items & Definitions
-  const menuConfig = {
+  const allMenuConfig = {
     transactions: {
       id: 'transactions',
       label: 'Transactions',
@@ -303,6 +303,27 @@ export default function Navbar({
     }
   };
 
+  // For user role: only allow access to transactions menu, customer master only, and exit
+  const isUserRole = currentUser?.role === 'user';
+  const menuConfig = isUserRole
+    ? {
+        transactions: allMenuConfig.transactions,
+        masters: {
+          id: 'masters',
+          label: 'Masters',
+          hotkey: 'm',
+          items: [
+            {
+              id: 'customer_master',
+              label: 'Customer Master [F5]',
+              action: () => setActiveTab('customers')
+            }
+          ]
+        },
+        exit: allMenuConfig.exit
+      }
+    : allMenuConfig;
+
   const menuKeys = Object.keys(menuConfig);
 
   // Keyboard navigation for top menu bar and dropdowns
@@ -397,6 +418,8 @@ export default function Navbar({
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, [currentUser, activeTab, openMenu, highlightedIndex]);
+
+  if (!currentUser) return null;
 
   return (
     <div ref={menuBarRef} className="no-print w-full flex-shrink-0 select-none relative z-[1000]">

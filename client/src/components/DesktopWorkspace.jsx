@@ -4,7 +4,8 @@ export default function DesktopWorkspace({
   storeSettings = {}, 
   lang = 'en',
   onOpenScreen,
-  setBillingMode
+  setBillingMode,
+  currentUser = null
 }) {
   const [timeStr, setTimeStr] = useState('');
 
@@ -159,29 +160,34 @@ export default function DesktopWorkspace({
             <span>{lang === 'ta' ? 'திருப்பல் பில்' : 'Sales Return'}</span>
           </button>
 
-          <button
-            onClick={() => onOpenScreen('products')}
-            className="bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-white font-bold px-2 py-1 rounded shadow-md border border-slate-600 flex items-center space-x-1.5 transition-colors"
-          >
-            <span className="bg-slate-950 px-1 py-0.2 rounded font-mono text-[10px] text-slate-300">F2</span>
-            <span>{lang === 'ta' ? 'பொருட்கள்' : 'Items Master'}</span>
-          </button>
+          {/* Admin & Root Only Quick Launch Items */}
+          {!currentUser || currentUser.role !== 'user' ? (
+            <>
+              <button
+                onClick={() => onOpenScreen('products')}
+                className="bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-white font-bold px-2 py-1 rounded shadow-md border border-slate-600 flex items-center space-x-1.5 transition-colors"
+              >
+                <span className="bg-slate-950 px-1 py-0.2 rounded font-mono text-[10px] text-slate-300">F2</span>
+                <span>{lang === 'ta' ? 'பொருட்கள்' : 'Items Master'}</span>
+              </button>
 
-          <button
-            onClick={() => onOpenScreen('invoices')}
-            className="bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-white font-bold px-2 py-1 rounded shadow-md border border-slate-600 flex items-center space-x-1.5 transition-colors"
-          >
-            <span className="bg-slate-950 px-1 py-0.2 rounded font-mono text-[10px] text-slate-300">F3</span>
-            <span>{lang === 'ta' ? 'விற்பனை ஏடு' : 'Bills Book'}</span>
-          </button>
+              <button
+                onClick={() => onOpenScreen('invoices')}
+                className="bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-white font-bold px-2 py-1 rounded shadow-md border border-slate-600 flex items-center space-x-1.5 transition-colors"
+              >
+                <span className="bg-slate-950 px-1 py-0.2 rounded font-mono text-[10px] text-slate-300">F3</span>
+                <span>{lang === 'ta' ? 'விற்பனை ஏடு' : 'Bills Book'}</span>
+              </button>
 
-          <button
-            onClick={() => onOpenScreen('reports')}
-            className="bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-white font-bold px-2 py-1 rounded shadow-md border border-slate-600 flex items-center space-x-1.5 transition-colors"
-          >
-            <span className="bg-slate-950 px-1 py-0.2 rounded font-mono text-[10px] text-slate-300">F4</span>
-            <span>{lang === 'ta' ? 'ஜிஎஸ்டி அறிக்கை' : 'GST Reports'}</span>
-          </button>
+              <button
+                onClick={() => onOpenScreen('reports')}
+                className="bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-white font-bold px-2 py-1 rounded shadow-md border border-slate-600 flex items-center space-x-1.5 transition-colors"
+              >
+                <span className="bg-slate-950 px-1 py-0.2 rounded font-mono text-[10px] text-slate-300">F4</span>
+                <span>{lang === 'ta' ? 'ஜிஎஸ்டி அறிக்கை' : 'GST Reports'}</span>
+              </button>
+            </>
+          ) : null}
 
           <button
             onClick={() => onOpenScreen('customers')}

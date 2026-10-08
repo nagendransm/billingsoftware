@@ -145,11 +145,10 @@ export default function App() {
           setActiveTab('invoices');
         }
       } else if (e.key === 'F5') {
-        if (isAdmin) {
-          e.preventDefault();
-          e.stopPropagation();
-          setActiveTab('customers');
-        }
+        // Customer Master is accessible to all users (user, admin, root)
+        e.preventDefault();
+        e.stopPropagation();
+        setActiveTab('customers');
       } else if (e.key === 'F6') {
         if (isAdmin) {
           e.preventDefault();
@@ -161,6 +160,15 @@ export default function App() {
     window.addEventListener('keydown', handleTabKeys, true);
     return () => window.removeEventListener('keydown', handleTabKeys, true);
   }, []);
+
+  // Safety check for user role: only allowed tabs are 'desktop', 'pos', 'customers'
+  useEffect(() => {
+    if (currentUser?.role === 'user') {
+      if (['products', 'invoices', 'reports', 'settings'].includes(activeTab)) {
+        setActiveTab('pos');
+      }
+    }
+  }, [currentUser, activeTab]);
 
   // Calculate low stock count
   const lowStockCount = products.filter(p => p.stock_quantity <= p.min_stock_alert).length;
@@ -190,13 +198,13 @@ export default function App() {
 
   const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'root');
 
+  // If not logged in, render ONLY LoginModal (No Navbar or screens show without login)
+  if (!currentUser) {
+    return <LoginModal onLogin={handleLogin} lang={lang} />;
+  }
+
   return (
     <div className="h-screen max-h-screen overflow-hidden bg-slate-100 flex flex-col font-sans text-slate-800">
-      
-      {/* Login Modal when not signed in */}
-      {!currentUser && (
-        <LoginModal onLogin={handleLogin} lang={lang} />
-      )}
 
       {/* Top Window Title Bar & Classic Desktop Menu Bar (Matches Screenshot) */}
       <Navbar
@@ -225,6 +233,7 @@ export default function App() {
             lang={lang}
             onOpenScreen={(tab) => setActiveTab(tab)}
             setBillingMode={setBillingMode}
+            currentUser={currentUser}
           />
         )}
 
