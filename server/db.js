@@ -144,12 +144,19 @@ try {
   // Column already exists
 }
 
-// Seed default users if empty
+// Seed default users (Root, Admin, Staff)
 const userCount = db.prepare('SELECT count(*) as count FROM users').get();
 if (userCount.count === 0) {
   const insertUser = db.prepare('INSERT INTO users (username, password, role, name) VALUES (?, ?, ?, ?)');
+  insertUser.run('root', 'root123', 'root', 'Master Root Admin');
   insertUser.run('admin', 'admin123', 'admin', 'Administrator');
   insertUser.run('user', 'user123', 'user', 'Billing Staff');
+} else {
+  // Ensure root user exists
+  const rootExists = db.prepare('SELECT id FROM users WHERE username = ?').get('root');
+  if (!rootExists) {
+    db.prepare('INSERT INTO users (username, password, role, name) VALUES (?, ?, ?, ?)').run('root', 'root123', 'root', 'Master Root Admin');
+  }
 }
 
 // Seed default settings if empty

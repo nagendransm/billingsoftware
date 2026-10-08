@@ -12,6 +12,7 @@ import ShortcutsModal from './components/ShortcutsModal';
 import BarcodeModal from './components/BarcodeModal';
 import ReceiptModal from './components/ReceiptModal';
 import LoginModal from './components/LoginModal';
+import UserManagementModal from './components/UserManagementModal';
 import { translations } from './translations';
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
   const [showLicenceModal, setShowLicenceModal] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [showBarcodeModal, setShowBarcodeModal] = useState(false);
+  const [showUserManagementModal, setShowUserManagementModal] = useState(false);
 
   // Authentication State: Require login every time software opens
   const [currentUser, setCurrentUser] = useState(null);
@@ -126,7 +128,7 @@ export default function App() {
   useEffect(() => {
     const handleTabKeys = (e) => {
       const user = currentUserRef.current;
-      const isAdmin = user && user.role === 'admin';
+      const isAdmin = user && (user.role === 'admin' || user.role === 'root');
 
       if (e.key === 'F1') {
         e.preventDefault();
@@ -186,7 +188,7 @@ export default function App() {
     }
   };
 
-  const isAdmin = currentUser && currentUser.role === 'admin';
+  const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'root');
 
   return (
     <div className="h-screen max-h-screen overflow-hidden bg-slate-100 flex flex-col font-sans text-slate-800">
@@ -212,6 +214,7 @@ export default function App() {
         onOpenLicence={() => setShowLicenceModal(true)}
         onOpenShortcuts={() => setShowShortcutsModal(true)}
         onOpenBarcode={() => setShowBarcodeModal(true)}
+        onOpenUserManagement={() => setShowUserManagementModal(true)}
       />
 
       {/* Main Screen Content */}
@@ -334,6 +337,14 @@ export default function App() {
         onClose={() => setIsReceiptOpen(false)}
         lang={lang}
         t={t}
+      />
+
+      {/* User Management Modal */}
+      <UserManagementModal
+        isOpen={showUserManagementModal}
+        onClose={() => setShowUserManagementModal(false)}
+        currentUser={currentUser}
+        lang={lang}
       />
 
     </div>

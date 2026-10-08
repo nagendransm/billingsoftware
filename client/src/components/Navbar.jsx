@@ -13,7 +13,8 @@ export default function Navbar({
   setBillingMode,
   onOpenLicence,
   onOpenShortcuts,
-  onOpenBarcode
+  onOpenBarcode,
+  onOpenUserManagement
 }) {
   const [openMenu, setOpenMenu] = useState(null); // 'transactions' | 'masters' | 'accounts' | 'utility' | 'admin' | 'service' | 'licence' | 'exit'
   const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -204,7 +205,13 @@ export default function Navbar({
         {
           id: 'user_mgmt',
           label: 'User Management',
-          action: () => setActiveTab('settings')
+          action: () => {
+            if (onOpenUserManagement) {
+              onOpenUserManagement();
+            } else {
+              setActiveTab('settings');
+            }
+          }
         },
         {
           id: 'db_backup',
