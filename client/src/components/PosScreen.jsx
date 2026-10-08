@@ -913,55 +913,11 @@ export default function PosScreen({
             {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit' })}
           </span>
 
-          {viewingPastBill ? (
+          {viewingPastBill && (
             <span className="bg-amber-500 text-white font-bold px-1.5 py-0.5 rounded text-[10px] flex items-center space-x-1 shadow-xs">
               <span>📋</span>
               <span>{lang === 'ta' ? 'முந்தைய ரசீது' : 'Past Bill'} ({pastBillIndex + 1}/{pastInvoices.length})</span>
             </span>
-          ) : (
-            <div className="flex items-center space-x-1">
-              <button
-                type="button"
-                onClick={() => setBillingMode && setBillingMode('estimate')}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors flex items-center space-x-1 whitespace-nowrap ${
-                  billingMode === 'estimate'
-                    ? 'bg-purple-700 text-white border-purple-800 shadow-xs ring-1 ring-purple-300'
-                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
-                }`}
-                title="Sales Order"
-              >
-                <span>📦</span>
-                <span>{lang === 'ta' ? 'விற்பனை ஆணை' : 'Sales Order'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setBillingMode && setBillingMode('tax_invoice')}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors flex items-center space-x-1 whitespace-nowrap ${
-                  billingMode === 'tax_invoice'
-                    ? 'bg-emerald-600 text-white border-emerald-700 shadow-xs ring-1 ring-emerald-300'
-                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
-                }`}
-                title="Sales Bill"
-              >
-                <span>🧾</span>
-                <span>{lang === 'ta' ? 'விற்பனை பில்' : 'Sales Bill'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setBillingMode && setBillingMode('return_bill')}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors flex items-center space-x-1 whitespace-nowrap ${
-                  billingMode === 'return_bill'
-                    ? 'bg-rose-600 text-white border-rose-700 shadow-xs ring-1 ring-rose-300'
-                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
-                }`}
-                title="Sales Return"
-              >
-                <span>🔄</span>
-                <span>{lang === 'ta' ? 'திருப்பல் பில்' : 'Sales Return'}</span>
-              </button>
-            </div>
           )}
         </div>
 
