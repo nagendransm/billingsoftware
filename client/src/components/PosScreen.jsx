@@ -1093,7 +1093,7 @@ export default function PosScreen({
                 <span className="text-base">🔄</span>
                 <span className="font-tamil">
                   {lang === 'ta' 
-                    ? 'பொருட்கள் திருப்பல் முறை: வாடிக்கையாளர் திருப்பும் பொருட்கள். வரி இல்லை. இப்பொருட்கள் சரக்கு இருப்புக்கு மீண்டும் சேர்க்கப்படும்!' 
+                    ? 'ரிட்டன் பில் முறை: வாடிக்கையாளர் திருப்பும் பொருட்கள். வரி இல்லை. இப்பொருட்கள் சரக்கு இருப்புக்கு மீண்டும் சேர்க்கப்படும்!' 
                     : 'RETURN BILL MODE: Customer returning items. No tax applied. Products will be ADDED BACK to inventory stock!'}
                 </span>
               </div>
@@ -1602,7 +1602,7 @@ export default function PosScreen({
           <div className="bg-slate-900 text-white px-2.5 py-1.5 rounded flex items-center justify-between shadow-xs">
             <span className="text-xs sm:text-sm font-bold font-tamil tracking-wide">
               {billingMode === 'return_bill'
-                ? (lang === 'ta' ? 'திருப்பிய தொகை (REFUND):' : 'REFUND TOTAL:')
+                ? (lang === 'ta' ? 'ரிட்டன் தொகை (REFUND):' : 'REFUND TOTAL:')
                 : billingMode === 'estimate'
                   ? (lang === 'ta' ? 'மொத்தத் தொகை (NET TOTAL):' : 'NET TOTAL:')
                   : (lang === 'ta' ? 'மொத்தத் தொகை (NET PAYABLE):' : 'GRAND TOTAL:')
@@ -1647,7 +1647,7 @@ export default function PosScreen({
                   }`}
                 >
                   {billingMode === 'return_bill'
-                    ? (lang === 'ta' ? 'திருப்பல் அச்சிடு [F9]' : 'Save & Print Return [F9]')
+                    ? (lang === 'ta' ? 'ரிட்டன் பில் அச்சிடு [F9]' : 'Save & Print Return [F9]')
                     : billingMode === 'estimate'
                       ? (lang === 'ta' ? 'ஆணை அச்சிடு [F9]' : 'Save & Print [F9]')
                       : (lang === 'ta' ? 'அச்சிடு & சேமி [F9]' : 'Save & Print [F9]')
@@ -1660,7 +1660,7 @@ export default function PosScreen({
                   className="py-1.5 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded text-xs shadow-xs disabled:opacity-40 font-tamil"
                 >
                   {billingMode === 'return_bill'
-                    ? (lang === 'ta' ? 'திருப்பல் சேமி [F8]' : 'Save Return [F8]')
+                    ? (lang === 'ta' ? 'ரிட்டன் பில் சேமி [F8]' : 'Save Return [F8]')
                     : billingMode === 'estimate'
                       ? (lang === 'ta' ? 'ஆணை சேமி [F8]' : 'Save [F8]')
                       : (lang === 'ta' ? 'சேமிக்க மட்டும் [F8]' : 'Save Only [F8]')

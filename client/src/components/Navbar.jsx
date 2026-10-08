@@ -450,7 +450,7 @@ export default function Navbar({
               ? 'bg-sky-950/80 text-sky-300 border-sky-700/60'
               : 'bg-rose-950/80 text-rose-300 border-rose-700/60'
           }`}>
-            {modeCode === 'T' ? '● TAX INVOICE [T]' : modeCode === 'SO' ? '● SALES ORDER [SO]' : '● SALES RETURN [R]'}
+            {modeCode === 'T' ? '● TAX INVOICE [T]' : modeCode === 'SO' ? '● SALES ORDER [SO]' : '● RETURN BILL / ரிட்டன் பில் [R]'}
           </span>
         </div>
 

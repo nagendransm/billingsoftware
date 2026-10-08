@@ -96,7 +96,7 @@ export default function ReceiptModal({
                   </h3>
                 )}
                 <div className="mt-1 text-[11px] font-bold border border-black py-0.5 uppercase tracking-wide font-tamil">
-                  {isReturn ? 'RETURN BILL / பொருட்கள் திருப்பல் ரசீது' : isEstimate ? 'SALES ORDER / விற்பனை ஆணை' : 'TAX INVOICE / வரி விலைப்பட்டியல்'}
+                  {isReturn ? 'RETURN BILL / ரிட்டன் பில்' : isEstimate ? 'SALES ORDER / விற்பனை ஆணை' : 'TAX INVOICE / வரி விலைப்பட்டியல்'}
                 </div>
                 {(storeSettings.address_ta || storeSettings.address_en) && (
                   <p className="text-[10px] mt-0.5">{storeSettings.address_ta || storeSettings.address_en}</p>
@@ -244,7 +244,7 @@ export default function ReceiptModal({
                   {storeSettings.shop_name_ta && <h2 className="text-base font-bold font-tamil">{storeSettings.shop_name_ta}</h2>}
                   {storeSettings.shop_name_en && <h1 className="text-sm font-bold">{storeSettings.shop_name_en}</h1>}
                   <div className="text-xs font-bold border border-black px-1.5 py-0.5 inline-block uppercase mt-1">
-                    {isReturn ? 'RETURN BILL / பொருட்கள் திருப்பல் ரசீது' : isEstimate ? 'SALES ORDER / விற்பனை ஆணை' : 'TAX INVOICE / வரி விலைப்பட்டியல்'}
+                    {isReturn ? 'RETURN BILL / ரிட்டன் பில்' : isEstimate ? 'SALES ORDER / விற்பனை ஆணை' : 'TAX INVOICE / வரி விலைப்பட்டியல்'}
                   </div>
                   {(storeSettings.address_ta || storeSettings.address_en) && (
                     <p className="text-[11px]">{storeSettings.address_ta || storeSettings.address_en}</p>
