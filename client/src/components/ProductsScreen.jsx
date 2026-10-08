@@ -5,12 +5,15 @@ import { cleanTamilText } from '../utils/tamilConverter';
 export default function ProductsScreen({
   products = [],
   categories = [],
+  subgroups = [],
   lang = 'ta',
   t = {},
-  onRefresh
+  onRefresh,
+  onOpenSubgroups
 }) {
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState('all');
+  const [selectedSubgroup, setSelectedSubgroup] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
 
@@ -26,7 +29,8 @@ export default function ProductsScreen({
     name_en: '',
     name_ta: '',
     category_id: '',
-    hsn_code: '1006',
+    subgroup_id: '',
+    hsn_code: '0000',
     unit: 'kg',
     cost_price: '',
     selling_price: '',
@@ -43,7 +47,8 @@ export default function ProductsScreen({
       name_en: '',
       name_ta: '',
       category_id: categories.length > 0 ? categories[0].id : '',
-      hsn_code: '1006',
+      subgroup_id: selectedSubgroup !== 'all' ? selectedSubgroup : '',
+      hsn_code: '0000',
       unit: 'kg',
       cost_price: '',
       selling_price: '',
@@ -62,7 +67,8 @@ export default function ProductsScreen({
       name_en: p.name_en,
       name_ta: p.name_ta,
       category_id: p.category_id || '',
-      hsn_code: p.hsn_code,
+      subgroup_id: p.subgroup_id ? String(p.subgroup_id) : '',
+      hsn_code: p.hsn_code || '0000',
       unit: p.unit,
       cost_price: p.cost_price,
       selling_price: p.selling_price,
@@ -76,8 +82,8 @@ export default function ProductsScreen({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name_en || !formData.name_ta || !formData.selling_price || !formData.hsn_code) {
-      alert('Fill mandatory fields: Name (Tamil), Name (English), Price, HSN');
+    if (!formData.name_en || !formData.name_ta || !formData.selling_price) {
+      alert(lang === 'ta' ? 'அவசியமான புலங்களை நிரப்பவும்: பொருள் பெயர் (தமிழ்), பெயர் (ஆங்கிலம்), விற்பனை விலை' : 'Fill mandatory fields: Name (Tamil), Name (English), Price');
       return;
     }
 
@@ -320,10 +326,12 @@ export default function ProductsScreen({
         (p.name_en && p.name_en.toLowerCase().includes(q)) ||
         (p.name_ta && p.name_ta.includes(q)) ||
         (p.barcode && p.barcode.toLowerCase().includes(q)) ||
-        (p.hsn_code && p.hsn_code.includes(q))
+        (p.subgroup_name_ta && p.subgroup_name_ta.includes(q)) ||
+        (p.subgroup_name_en && p.subgroup_name_en.toLowerCase().includes(q))
       );
       const catMatch = selectedCat === 'all' || String(p.category_id) === selectedCat;
-      return match && catMatch;
+      const subgMatch = selectedSubgroup === 'all' || String(p.subgroup_id) === selectedSubgroup;
+      return match && catMatch && subgMatch;
     })
     .sort((a, b) => {
       const nameA = lang === 'ta'
@@ -350,7 +358,7 @@ export default function ProductsScreen({
           </span>
         </h2>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           <input
             type="text"
             value={search}
@@ -360,9 +368,35 @@ export default function ProductsScreen({
                 setSearch('');
               }
             }}
-            placeholder={lang === 'ta' ? 'பொருள் பெயர் / பார்கோடு கொண்டு தேடுக...' : 'Search product / barcode...'}
-            className="px-3 py-1.5 border border-slate-400 rounded text-xs w-56 sm:w-64 focus:outline-none"
+            placeholder={lang === 'ta' ? 'பொருள் / பிரிவு / பார்கோடு...' : 'Search product / sub group...'}
+            className="px-3 py-1.5 border border-slate-400 rounded text-xs w-48 sm:w-56 focus:outline-none"
           />
+
+          {/* Sub Group Filter Dropdown */}
+          <select
+            value={selectedSubgroup}
+            onChange={(e) => setSelectedSubgroup(e.target.value)}
+            className="px-2.5 py-1.5 border border-slate-400 rounded text-xs font-tamil bg-white focus:outline-none"
+          >
+            <option value="all">-- {lang === 'ta' ? 'அனைத்து துணைப் பிரிவுகளும்' : 'All Sub Groups'} --</option>
+            {subgroups.map(sg => (
+              <option key={sg.id} value={String(sg.id)}>
+                {lang === 'ta' ? (sg.name_ta || sg.name_en) : (sg.name_en || sg.name_ta)}
+              </option>
+            ))}
+          </select>
+
+          {/* Sub Groups Master Button */}
+          {onOpenSubgroups && (
+            <button
+              onClick={onOpenSubgroups}
+              className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded text-xs font-bold font-tamil flex items-center space-x-1 shadow-xs"
+              title={lang === 'ta' ? 'துணைப் பிரிவு மேலாண்மை' : 'Manage Sub Groups'}
+            >
+              <span>🏷️</span>
+              <span>{lang === 'ta' ? 'துணைப் பிரிவுகள்' : 'Sub Groups'}</span>
+            </button>
+          )}
 
           {/* Import from Excel Button */}
           <button
@@ -396,7 +430,7 @@ export default function ProductsScreen({
               <th className="py-2 px-3 border-r border-slate-300">{lang === 'ta' ? 'பார்கோடு' : 'Barcode'}</th>
               <th className="py-2 px-3 border-r border-slate-300">{lang === 'ta' ? 'பொருளின் பெயர்' : 'Product Name (Tamil)'}</th>
               <th className="py-2 px-3 border-r border-slate-300">{lang === 'ta' ? 'ஆங்கிலப் பெயர்' : 'Product Name (English)'}</th>
-              <th className="py-2 px-2 text-center border-r border-slate-300">HSN</th>
+              <th className="py-2 px-3 border-r border-slate-300 font-tamil">{lang === 'ta' ? 'துணைப் பிரிவு' : 'Sub Group'}</th>
               <th className="py-2 px-2 text-center border-r border-slate-300">GST %</th>
               <th className="py-2 px-2 text-right border-r border-slate-300">{lang === 'ta' ? 'விற்பனை விலை (₹)' : 'Selling Price (₹)'}</th>
               <th className="py-2 px-2 text-right border-r border-slate-300">{lang === 'ta' ? 'கொள்முதல் விலை (₹)' : 'Cost Price (₹)'}</th>
@@ -411,7 +445,11 @@ export default function ProductsScreen({
                 <td className="py-2 px-3 font-mono text-slate-700 border-r border-slate-200">{p.barcode}</td>
                 <td className="py-2 px-3 font-bold text-slate-900 font-product border-r border-slate-200">{p.name_ta}</td>
                 <td className="py-2 px-3 text-slate-700 border-r border-slate-200">{p.name_en}</td>
-                <td className="py-2 px-2 text-center font-mono border-r border-slate-200">{p.hsn_code}</td>
+                <td className="py-2 px-3 text-slate-700 font-tamil border-r border-slate-200">
+                  {p.subgroup_name_ta || p.subgroup_name_en || (
+                    <span className="text-slate-400 italic font-sans">-</span>
+                  )}
+                </td>
                 <td className="py-2 px-2 text-center font-mono font-bold border-r border-slate-200">{p.gst_rate}%</td>
                 <td className="py-2 px-2 text-right font-mono font-bold text-slate-900 border-r border-slate-200">₹{p.selling_price} /{p.unit}</td>
                 <td className="py-2 px-2 text-right font-mono text-slate-500 border-r border-slate-200">₹{p.cost_price}</td>
@@ -477,7 +515,7 @@ export default function ProductsScreen({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div>
                   <label className="font-bold block mb-1">Barcode</label>
                   <input
@@ -488,21 +526,37 @@ export default function ProductsScreen({
                   />
                 </div>
                 <div>
-                  <label className="font-bold block mb-1">HSN Code *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.hsn_code}
-                    onChange={(e) => setFormData({ ...formData, hsn_code: e.target.value })}
-                    className="w-full p-1.5 border border-slate-400 rounded font-mono"
-                  />
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="font-bold font-tamil">{lang === 'ta' ? 'துணைப் பிரிவு' : 'Sub Group'}</label>
+                    {onOpenSubgroups && (
+                      <button
+                        type="button"
+                        onClick={onOpenSubgroups}
+                        className="text-[11px] text-emerald-700 hover:text-emerald-900 font-bold underline"
+                      >
+                        + {lang === 'ta' ? 'புதிய பிரிவு' : 'New'}
+                      </button>
+                    )}
+                  </div>
+                  <select
+                    value={formData.subgroup_id || ''}
+                    onChange={(e) => setFormData({ ...formData, subgroup_id: e.target.value })}
+                    className="w-full p-1.5 border border-slate-400 rounded font-tamil bg-white"
+                  >
+                    <option value="">-- {lang === 'ta' ? 'துணைப் பிரிவு தேர்வு செய்க' : 'Select Sub Group'} --</option>
+                    {subgroups.map(sg => (
+                      <option key={sg.id} value={sg.id}>
+                        {lang === 'ta' ? (sg.name_ta || sg.name_en) : (sg.name_en || sg.name_ta)}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="font-bold block mb-1">GST %</label>
                   <select
                     value={formData.gst_rate}
                     onChange={(e) => setFormData({ ...formData, gst_rate: e.target.value })}
-                    className="w-full p-1.5 border border-slate-400 rounded font-bold"
+                    className="w-full p-1.5 border border-slate-400 rounded font-bold bg-white"
                   >
                     <option value="0">0%</option>
                     <option value="5">5% (CGST 2.5% + SGST 2.5%)</option>

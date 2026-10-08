@@ -13,6 +13,7 @@ import BarcodeModal from './components/BarcodeModal';
 import ReceiptModal from './components/ReceiptModal';
 import LoginModal from './components/LoginModal';
 import UserManagementModal from './components/UserManagementModal';
+import SubgroupsModal from './components/SubgroupsModal';
 import { translations } from './translations';
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
   const [storeSettings, setStoreSettings] = useState({});
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [subgroups, setSubgroups] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [activeInvoice, setActiveInvoice] = useState(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
@@ -29,6 +31,7 @@ export default function App() {
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [showBarcodeModal, setShowBarcodeModal] = useState(false);
   const [showUserManagementModal, setShowUserManagementModal] = useState(false);
+  const [showSubgroupsModal, setShowSubgroupsModal] = useState(false);
 
   // Authentication State: Require login every time software opens
   const [currentUser, setCurrentUser] = useState(null);
@@ -94,6 +97,18 @@ export default function App() {
     }
   };
 
+  const loadSubgroups = async () => {
+    try {
+      const res = await fetch('/api/subgroups');
+      const data = await res.json();
+      if (data.success) {
+        setSubgroups(data.data);
+      }
+    } catch (err) {
+      console.error('Subgroups load error:', err);
+    }
+  };
+
   const loadCustomers = async () => {
     try {
       const res = await fetch('/api/customers');
@@ -110,6 +125,7 @@ export default function App() {
     loadSettings();
     loadProducts();
     loadCategories();
+    loadSubgroups();
     loadCustomers();
   }, []);
 
@@ -223,6 +239,7 @@ export default function App() {
         onOpenShortcuts={() => setShowShortcutsModal(true)}
         onOpenBarcode={() => setShowBarcodeModal(true)}
         onOpenUserManagement={() => setShowUserManagementModal(true)}
+        onOpenSubgroups={() => setShowSubgroupsModal(true)}
       />
 
       {/* Main Screen Content */}
@@ -251,9 +268,11 @@ export default function App() {
           <ProductsScreen
             products={products}
             categories={categories}
+            subgroups={subgroups}
             lang={lang}
             t={t}
             onRefresh={loadProducts}
+            onOpenSubgroups={() => setShowSubgroupsModal(true)}
           />
         )}
 
@@ -345,6 +364,19 @@ export default function App() {
         isOpen={showUserManagementModal}
         onClose={() => setShowUserManagementModal(false)}
         currentUser={currentUser}
+        lang={lang}
+      />
+
+      {/* Sub Group Master Modal */}
+      <SubgroupsModal
+        isOpen={showSubgroupsModal}
+        onClose={() => setShowSubgroupsModal(false)}
+        subgroups={subgroups}
+        categories={categories}
+        onRefresh={() => {
+          loadSubgroups();
+          loadProducts();
+        }}
         lang={lang}
       />
 

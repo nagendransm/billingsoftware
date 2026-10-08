@@ -6,24 +6,32 @@ const { cleanTamilText } = require('../utils/tamilConverter');
 // Get all products with search & filters
 router.get('/', (req, res) => {
   try {
-    const { search, category_id, quick_only, low_stock } = req.query;
+    const { search, category_id, subgroup_id, quick_only, low_stock } = req.query;
     let query = `
-      SELECT p.*, c.name_en as category_name_en, c.name_ta as category_name_ta 
+      SELECT p.*, 
+             c.name_en as category_name_en, c.name_ta as category_name_ta,
+             sg.name_en as subgroup_name_en, sg.name_ta as subgroup_name_ta
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
+      LEFT JOIN subgroups sg ON p.subgroup_id = sg.id
       WHERE 1=1
     `;
     const params = [];
 
     if (search) {
-      query += ` AND (p.name_en LIKE ? OR p.name_ta LIKE ? OR p.barcode LIKE ? OR p.hsn_code LIKE ?)`;
+      query += ` AND (p.name_en LIKE ? OR p.name_ta LIKE ? OR p.barcode LIKE ? OR p.hsn_code LIKE ? OR sg.name_en LIKE ? OR sg.name_ta LIKE ?)`;
       const s = `%${search}%`;
-      params.push(s, s, s, s);
+      params.push(s, s, s, s, s, s);
     }
 
-    if (category_id) {
+    if (category_id && category_id !== 'all') {
       query += ` AND p.category_id = ?`;
       params.push(Number(category_id));
+    }
+
+    if (subgroup_id && subgroup_id !== 'all') {
+      query += ` AND p.subgroup_id = ?`;
+      params.push(Number(subgroup_id));
     }
 
     if (quick_only === 'true' || quick_only === '1') {
@@ -49,9 +57,12 @@ router.get('/barcode/:barcode', (req, res) => {
   try {
     const barcode = req.params.barcode.trim();
     const stmt = db.prepare(`
-      SELECT p.*, c.name_en as category_name_en, c.name_ta as category_name_ta 
+      SELECT p.*, 
+             c.name_en as category_name_en, c.name_ta as category_name_ta,
+             sg.name_en as subgroup_name_en, sg.name_ta as subgroup_name_ta
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
+      LEFT JOIN subgroups sg ON p.subgroup_id = sg.id
       WHERE p.barcode = ?
     `);
     const product = stmt.get(barcode);
@@ -72,6 +83,7 @@ router.post('/', (req, res) => {
       name_en,
       name_ta,
       category_id,
+      subgroup_id,
       hsn_code,
       unit = 'kg',
       cost_price = 0,
@@ -86,10 +98,10 @@ router.post('/', (req, res) => {
       is_quick_item = 0
     } = req.body;
 
-    if (!name_en || !name_ta || selling_price === undefined || !hsn_code) {
+    if (!name_en || !name_ta || selling_price === undefined) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Name (EN & TA), selling price, and HSN code are mandatory' 
+        message: 'Name (EN & TA) and selling price are mandatory' 
       });
     }
 
@@ -98,12 +110,14 @@ router.post('/', (req, res) => {
       ? barcode.trim() 
       : 'GCR' + Math.floor(10000000 + Math.random() * 90000000);
 
+    const finalHsn = hsn_code && hsn_code.trim() !== '' ? hsn_code.trim() : '0000';
+
     const stmt = db.prepare(`
       INSERT INTO products (
-        barcode, name_en, name_ta, category_id, hsn_code, unit,
+        barcode, name_en, name_ta, category_id, subgroup_id, hsn_code, unit,
         cost_price, selling_price, mrp, discount_percent, gst_rate,
         cess_rate, stock_quantity, min_stock_alert, is_loose_item, is_quick_item
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
@@ -111,7 +125,8 @@ router.post('/', (req, res) => {
       name_en.trim(),
       cleanTamilText(name_ta),
       category_id ? Number(category_id) : null,
-      hsn_code.trim(),
+      subgroup_id ? Number(subgroup_id) : null,
+      finalHsn,
       unit,
       Number(cost_price || 0),
       Number(selling_price),
@@ -125,7 +140,16 @@ router.post('/', (req, res) => {
       is_quick_item ? 1 : 0
     );
 
-    const newProd = db.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid);
+    const newProd = db.prepare(`
+      SELECT p.*, 
+             c.name_en as category_name_en, c.name_ta as category_name_ta,
+             sg.name_en as subgroup_name_en, sg.name_ta as subgroup_name_ta
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      LEFT JOIN subgroups sg ON p.subgroup_id = sg.id
+      WHERE p.id = ?
+    `).get(result.lastInsertRowid);
+
     res.json({ success: true, data: newProd });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -136,11 +160,17 @@ router.post('/', (req, res) => {
 router.put('/:id', (req, res) => {
   try {
     const id = Number(req.params.id);
+    const existing = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
     const {
       barcode,
       name_en,
       name_ta,
       category_id,
+      subgroup_id,
       hsn_code,
       unit,
       cost_price,
@@ -155,12 +185,15 @@ router.put('/:id', (req, res) => {
       is_quick_item
     } = req.body;
 
+    const finalHsn = hsn_code && hsn_code.trim() !== '' ? hsn_code.trim() : (existing.hsn_code || '0000');
+
     const stmt = db.prepare(`
       UPDATE products SET
         barcode = ?,
         name_en = ?,
         name_ta = ?,
         category_id = ?,
+        subgroup_id = ?,
         hsn_code = ?,
         unit = ?,
         cost_price = ?,
@@ -177,26 +210,36 @@ router.put('/:id', (req, res) => {
     `);
 
     stmt.run(
-      barcode,
-      name_en,
-      cleanTamilText(name_ta),
-      category_id ? Number(category_id) : null,
-      hsn_code,
-      unit,
-      Number(cost_price || 0),
-      Number(selling_price),
-      Number(mrp || selling_price),
-      Number(discount_percent || 0),
-      Number(gst_rate || 0),
-      Number(cess_rate || 0),
-      Number(stock_quantity || 0),
-      Number(min_stock_alert || 10),
-      is_loose_item ? 1 : 0,
-      is_quick_item ? 1 : 0,
+      barcode || existing.barcode,
+      name_en || existing.name_en,
+      name_ta ? cleanTamilText(name_ta) : existing.name_ta,
+      category_id !== undefined ? (category_id ? Number(category_id) : null) : existing.category_id,
+      subgroup_id !== undefined ? (subgroup_id ? Number(subgroup_id) : null) : existing.subgroup_id,
+      finalHsn,
+      unit || existing.unit,
+      cost_price !== undefined ? Number(cost_price || 0) : existing.cost_price,
+      selling_price !== undefined ? Number(selling_price) : existing.selling_price,
+      mrp !== undefined ? Number(mrp) : existing.mrp,
+      discount_percent !== undefined ? Number(discount_percent || 0) : existing.discount_percent,
+      gst_rate !== undefined ? Number(gst_rate || 0) : existing.gst_rate,
+      cess_rate !== undefined ? Number(cess_rate || 0) : existing.cess_rate,
+      stock_quantity !== undefined ? Number(stock_quantity || 0) : existing.stock_quantity,
+      min_stock_alert !== undefined ? Number(min_stock_alert || 10) : existing.min_stock_alert,
+      is_loose_item !== undefined ? (is_loose_item ? 1 : 0) : existing.is_loose_item,
+      is_quick_item !== undefined ? (is_quick_item ? 1 : 0) : existing.is_quick_item,
       id
     );
 
-    const updatedProd = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+    const updatedProd = db.prepare(`
+      SELECT p.*, 
+             c.name_en as category_name_en, c.name_ta as category_name_ta,
+             sg.name_en as subgroup_name_en, sg.name_ta as subgroup_name_ta
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      LEFT JOIN subgroups sg ON p.subgroup_id = sg.id
+      WHERE p.id = ?
+    `).get(id);
+
     res.json({ success: true, data: updatedProd });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

@@ -29,6 +29,14 @@ db.exec(`
     icon TEXT
   );
 
+  CREATE TABLE IF NOT EXISTS subgroups (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category_id INTEGER REFERENCES categories(id),
+    name_en TEXT NOT NULL,
+    name_ta TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
   CREATE TABLE IF NOT EXISTS products (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     barcode TEXT UNIQUE,
@@ -144,6 +152,13 @@ try {
   // Column already exists
 }
 
+// Migration: Ensure subgroup_id column exists on products table
+try {
+  db.exec("ALTER TABLE products ADD COLUMN subgroup_id INTEGER REFERENCES subgroups(id);");
+} catch (e) {
+  // Column already exists
+}
+
 // Seed default users (Root, Admin, Staff)
 const userCount = db.prepare('SELECT count(*) as count FROM users').get();
 if (userCount.count === 0) {
@@ -241,6 +256,30 @@ if (catCount.count === 0) {
   const insertCat = db.prepare('INSERT INTO categories (name_en, name_ta, icon) VALUES (?, ?, ?)');
   for (const c of defaultCats) {
     insertCat.run(c.en, c.ta, c.icon);
+  }
+}
+
+// Seed default subgroups if empty
+const subgCount = db.prepare('SELECT count(*) as count FROM subgroups').get();
+if (subgCount.count === 0) {
+  const defaultSubgroups = [
+    { en: 'Masala Items', ta: 'மசாலா பொருட்கள்', cat: 3 },
+    { en: 'Toothpaste & Oral Care', ta: 'பற்பசை & வாய் சுகாதாரம்', cat: 9 },
+    { en: 'Soaps & Shampoos', ta: 'சோப்புகள் & ஷாம்பூ', cat: 9 },
+    { en: 'Dals & Pulses', ta: 'பருப்பு வகைகள்', cat: 2 },
+    { en: 'Edible Oils & Ghee', ta: 'சமையல் எண்ணெய் & நெய்', cat: 4 },
+    { en: 'Rice & Grains', ta: 'அரிசி & தானியங்கள்', cat: 1 },
+    { en: 'Biscuits & Snacks', ta: 'பிஸ்கட் & தின்பண்டங்கள்', cat: 8 },
+    { en: 'Tea & Coffee', ta: 'டீ & காபி தூள்', cat: 7 },
+    { en: 'Cleaning & Detergents', ta: 'சலவை & துப்புரவு பொருட்கள்', cat: 9 },
+    { en: 'Pooja Items', ta: 'பூஜை பொருட்கள்', cat: 10 },
+    { en: 'Spices & Condiments', ta: 'மளிகை நறுமணப் பொருட்கள்', cat: 3 },
+    { en: 'Cool Drinks & Beverages', ta: 'குளிர்பானங்கள் & ஜூஸ்', cat: 7 }
+  ];
+
+  const insertSubg = db.prepare('INSERT INTO subgroups (name_en, name_ta, category_id) VALUES (?, ?, ?)');
+  for (const sg of defaultSubgroups) {
+    insertSubg.run(sg.en, sg.ta, sg.cat);
   }
 }
 

@@ -14,7 +14,8 @@ export default function Navbar({
   onOpenLicence,
   onOpenShortcuts,
   onOpenBarcode,
-  onOpenUserManagement
+  onOpenUserManagement,
+  onOpenSubgroups
 }) {
   const [openMenu, setOpenMenu] = useState(null); // 'transactions' | 'masters' | 'accounts' | 'utility' | 'admin' | 'service' | 'licence' | 'exit'
   const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -117,6 +118,13 @@ export default function Navbar({
           id: 'product_master',
           label: 'Product Master [F2]',
           action: () => setActiveTab('products')
+        },
+        {
+          id: 'subgroup_master',
+          label: 'Sub Group Master (துணைப் பிரிவு)',
+          action: () => {
+            if (onOpenSubgroups) onOpenSubgroups();
+          }
         },
         {
           id: 'category_master',
