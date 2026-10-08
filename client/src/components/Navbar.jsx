@@ -454,51 +454,44 @@ export default function Navbar({
           </span>
         </div>
 
-        {/* Right: Active User & Modern Window Controls */}
-        <div className="flex items-center space-x-3" style={{ WebkitAppRegion: 'no-drag' }}>
-          {currentUser && (
-            <div className="flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-slate-800/80 border border-slate-700 text-[11px] text-slate-300">
-              <span>{currentUser.role === 'root' ? '👑' : currentUser.role === 'admin' ? '🛡️' : '👤'}</span>
-              <span className="font-semibold text-slate-200">{currentUser.name || currentUser.username}</span>
-              <span className="text-[9px] uppercase tracking-wider px-1 py-0.2 rounded bg-slate-700 text-slate-300 font-bold">
-                {currentUser.role}
-              </span>
+        {/* Right: Window Controls */}
+        <div className="flex items-center space-x-1" style={{ WebkitAppRegion: 'no-drag' }}>
+          {typeof window !== 'undefined' && (/electron/i.test(navigator.userAgent) || !!window.electronAPI) ? (
+            <div className="w-24 h-full" />
+          ) : (
+            <div className="flex items-center h-full space-x-1">
+              <button 
+                onClick={() => setActiveTab('desktop')}
+                title="Minimize to Desktop Workspace"
+                className="h-6 w-7 rounded flex items-center justify-center hover:bg-slate-800 text-slate-400 hover:text-white text-xs transition-colors"
+              >
+                —
+              </button>
+              <button 
+                onClick={() => {
+                  if (document.fullscreenElement) {
+                    document.exitFullscreen().catch(() => {});
+                  } else {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                  }
+                }}
+                title="Maximize / Toggle Fullscreen"
+                className="h-6 w-7 rounded flex items-center justify-center hover:bg-slate-800 text-slate-400 hover:text-white text-[11px] transition-colors"
+              >
+                ▢
+              </button>
+              <button 
+                onClick={() => {
+                  if (onLogout) onLogout();
+                  setActiveTab('desktop');
+                }}
+                title="Close / Exit"
+                className="h-6 w-7 rounded flex items-center justify-center hover:bg-rose-600 hover:text-white text-slate-400 text-xs transition-colors"
+              >
+                ✕
+              </button>
             </div>
           )}
-
-          {/* Window Controls */}
-          <div className="flex items-center h-full space-x-1">
-            <button 
-              onClick={() => setActiveTab('desktop')}
-              title="Minimize to Desktop Workspace"
-              className="h-6 w-7 rounded flex items-center justify-center hover:bg-slate-800 text-slate-400 hover:text-white text-xs transition-colors"
-            >
-              —
-            </button>
-            <button 
-              onClick={() => {
-                if (document.fullscreenElement) {
-                  document.exitFullscreen().catch(() => {});
-                } else {
-                  document.documentElement.requestFullscreen().catch(() => {});
-                }
-              }}
-              title="Maximize / Toggle Fullscreen"
-              className="h-6 w-7 rounded flex items-center justify-center hover:bg-slate-800 text-slate-400 hover:text-white text-[11px] transition-colors"
-            >
-              ▢
-            </button>
-            <button 
-              onClick={() => {
-                if (onLogout) onLogout();
-                setActiveTab('desktop');
-              }}
-              title="Close / Exit"
-              className="h-6 w-7 rounded flex items-center justify-center hover:bg-rose-600 hover:text-white text-slate-400 text-xs transition-colors"
-            >
-              ✕
-            </button>
-          </div>
         </div>
       </div>
 

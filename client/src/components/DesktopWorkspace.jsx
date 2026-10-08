@@ -82,18 +82,6 @@ export default function DesktopWorkspace({
           </div>
         </div>
 
-        {/* Keyboard Navigation Pill */}
-        <div className="mt-4 px-3.5 py-1.5 bg-slate-900/70 border border-slate-800 rounded-full text-xs font-mono text-slate-300 flex items-center space-x-2 shadow-inner">
-          <span className="bg-emerald-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">ENTER</span>
-          <span>Open Transactions</span>
-          <span className="text-slate-600">•</span>
-          <span className="text-amber-300 font-bold">← → ↑ ↓</span>
-          <span>Navigate Menus</span>
-          <span className="text-slate-600">•</span>
-          <span className="text-emerald-400 font-bold">[F1]</span>
-          <span>New Bill</span>
-        </div>
-
       </div>
 
       {/* Subtle spacer at bottom */}

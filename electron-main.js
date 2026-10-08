@@ -49,9 +49,9 @@ function createWindow() {
     backgroundColor: '#ffffff',
     titleBarStyle: 'hidden',
     titleBarOverlay: {
-      color: '#ffffff',
-      symbolColor: '#1e293b',
-      height: 30
+      color: '#0f172a',
+      symbolColor: '#cbd5e1',
+      height: 32
     },
     webPreferences: {
       nodeIntegration: false,
