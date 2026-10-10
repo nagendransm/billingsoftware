@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { cleanTamilText } from '../utils/tamilConverter';
 
@@ -23,6 +23,28 @@ export default function ProductsScreen({
   const [importPreview, setImportPreview] = useState([]);
   const [importStatus, setImportStatus] = useState(null);
   const fileInputRef = useRef(null);
+
+  // Close modals on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (isModalOpen) {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsModalOpen(false);
+          return;
+        }
+        if (isImportModalOpen) {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsImportModalOpen(false);
+          return;
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [isModalOpen, isImportModalOpen]);
 
   const [formData, setFormData] = useState({
     barcode: '',
@@ -432,6 +454,7 @@ export default function ProductsScreen({
               <th className="py-2 px-3 border-r border-slate-300">{lang === 'ta' ? 'ஆங்கிலப் பெயர்' : 'Product Name (English)'}</th>
               <th className="py-2 px-3 border-r border-slate-300 font-tamil">{lang === 'ta' ? 'துணைப் பிரிவு' : 'Sub Group'}</th>
               <th className="py-2 px-2 text-center border-r border-slate-300">GST %</th>
+              <th className="py-2 px-2 text-right border-r border-slate-300">MRP (₹)</th>
               <th className="py-2 px-2 text-right border-r border-slate-300">{lang === 'ta' ? 'விற்பனை விலை (₹)' : 'Selling Price (₹)'}</th>
               <th className="py-2 px-2 text-right border-r border-slate-300">{lang === 'ta' ? 'கொள்முதல் விலை (₹)' : 'Cost Price (₹)'}</th>
               <th className="py-2 px-2 text-center border-r border-slate-300">{lang === 'ta' ? 'இருப்பு' : 'Stock'}</th>
@@ -446,11 +469,14 @@ export default function ProductsScreen({
                 <td className="py-2 px-3 font-bold text-slate-900 font-product border-r border-slate-200">{p.name_ta}</td>
                 <td className="py-2 px-3 text-slate-700 border-r border-slate-200">{p.name_en}</td>
                 <td className="py-2 px-3 text-slate-700 font-tamil border-r border-slate-200">
-                  {p.subgroup_name_ta || p.subgroup_name_en || (
+                  {(lang === 'ta' ? (p.subgroup_name_ta || p.subgroup_name_en) : (p.subgroup_name_en || p.subgroup_name_ta)) || (
                     <span className="text-slate-400 italic font-sans">-</span>
                   )}
                 </td>
                 <td className="py-2 px-2 text-center font-mono font-bold border-r border-slate-200">{p.gst_rate}%</td>
+                <td className="py-2 px-2 text-right font-mono font-bold text-amber-800 border-r border-slate-200">
+                  ₹{p.mrp ? Math.round(p.mrp) : Math.round(p.selling_price)}
+                </td>
                 <td className="py-2 px-2 text-right font-mono font-bold text-slate-900 border-r border-slate-200">₹{p.selling_price} /{p.unit}</td>
                 <td className="py-2 px-2 text-right font-mono text-slate-500 border-r border-slate-200">₹{p.cost_price}</td>
                 <td className="py-2 px-2 text-center font-mono font-bold border-r border-slate-200">
@@ -567,47 +593,70 @@ export default function ProductsScreen({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <div>
-                  <label className="font-bold block mb-1">விற்பனை விலை (Selling Price) *</label>
+                  <label className="font-bold block mb-1">
+                    {lang === 'ta' ? 'MRP (அதிகபட்ச விலை ₹)' : 'MRP (₹)'}
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="MRP"
+                    value={formData.mrp}
+                    onChange={(e) => setFormData({ ...formData, mrp: e.target.value })}
+                    className="w-full p-1.5 border border-amber-400 bg-amber-50/40 rounded font-mono font-bold text-amber-900"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold block mb-1">
+                    {lang === 'ta' ? 'விற்பனை விலை (Selling) *' : 'Selling Price (₹) *'}
+                  </label>
                   <input
                     type="number"
                     step="any"
                     required
+                    placeholder="Selling Price"
                     value={formData.selling_price}
                     onChange={(e) => setFormData({ ...formData, selling_price: e.target.value })}
-                    className="w-full p-1.5 border border-slate-400 rounded font-mono font-bold"
+                    className="w-full p-1.5 border border-emerald-400 bg-emerald-50/40 rounded font-mono font-bold text-emerald-900"
                   />
                 </div>
                 <div>
-                  <label className="font-bold block mb-1">கொள்முதல் விலை (Cost)</label>
+                  <label className="font-bold block mb-1">
+                    {lang === 'ta' ? 'கொள்முதல் விலை (Cost)' : 'Cost Price (₹)'}
+                  </label>
                   <input
                     type="number"
                     step="any"
+                    placeholder="Cost"
                     value={formData.cost_price}
                     onChange={(e) => setFormData({ ...formData, cost_price: e.target.value })}
                     className="w-full p-1.5 border border-slate-400 rounded font-mono"
                   />
                 </div>
                 <div>
-                  <label className="font-bold block mb-1">அலகு (Unit)</label>
+                  <label className="font-bold block mb-1">
+                    {lang === 'ta' ? 'அலகு (Unit)' : 'Unit'}
+                  </label>
                   <select
                     value={formData.unit}
                     onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                    className="w-full p-1.5 border border-slate-400 rounded"
+                    className="w-full p-1.5 border border-slate-400 rounded bg-white"
                   >
-                    <option value="kg">kg (கிலோ)</option>
-                    <option value="g">g (கிராம்)</option>
-                    <option value="ltr">ltr (லிட்டர்)</option>
-                    <option value="pkt">pkt (பாக்கெட்)</option>
-                    <option value="pcs">pcs (எண்ணிக்கை)</option>
+                    <option value="kg">{lang === 'ta' ? 'kg (கிலோ)' : 'kg (Kilogram)'}</option>
+                    <option value="g">{lang === 'ta' ? 'g (கிராம்)' : 'g (Gram)'}</option>
+                    <option value="ltr">{lang === 'ta' ? 'ltr (லிட்டர்)' : 'ltr (Litre)'}</option>
+                    <option value="pkt">{lang === 'ta' ? 'pkt (பாக்கெட்)' : 'pkt (Packet)'}</option>
+                    <option value="pcs">{lang === 'ta' ? 'pcs (எண்ணிக்கை)' : 'pcs (Pieces)'}</option>
                   </select>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="font-bold block mb-1">தற்போதைய இருப்பு (Current Stock)</label>
+                  <label className="font-bold block mb-1">
+                    {lang === 'ta' ? 'தற்போதைய இருப்பு (Current Stock)' : 'Current Stock'}
+                  </label>
                   <input
                     type="number"
                     step="any"
@@ -617,7 +666,9 @@ export default function ProductsScreen({
                   />
                 </div>
                 <div>
-                  <label className="font-bold block mb-1">எச்சரிக்கை அளவு (Alert Level)</label>
+                  <label className="font-bold block mb-1">
+                    {lang === 'ta' ? 'எச்சரிக்கை அளவு (Alert Level)' : 'Alert Level'}
+                  </label>
                   <input
                     type="number"
                     value={formData.min_stock_alert}
@@ -633,13 +684,13 @@ export default function ProductsScreen({
                   onClick={() => setIsModalOpen(false)}
                   className="px-3 py-1.5 rounded border border-slate-300 font-bold"
                 >
-                  ரத்து (Cancel)
+                  {lang === 'ta' ? 'ரத்து' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded font-bold"
                 >
-                  சேமிக்க (Save)
+                  {lang === 'ta' ? 'சேமிக்க' : 'Save'}
                 </button>
               </div>
             </form>

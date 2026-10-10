@@ -1192,9 +1192,13 @@ export default function PosScreen({
                       }
                     }
                   } else if (e.key === 'Escape') {
-                    e.preventDefault();
-                    setSearchResults([]);
-                    setHighlightedIndex(0);
+                    if (searchResults.length > 0 || (searchQuery && searchQuery.trim().length > 0)) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSearchResults([]);
+                      setSearchQuery('');
+                      setHighlightedIndex(0);
+                    }
                   }
                 }}
                 id="pos-search-input"

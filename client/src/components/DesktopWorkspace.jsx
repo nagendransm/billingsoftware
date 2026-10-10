@@ -19,8 +19,8 @@ export default function DesktopWorkspace({
   }, []);
 
   const shopName = lang === 'ta'
-    ? (storeSettings.shop_name_ta || storeSettings.shop_name_en || 'மளிகை கடை பில்லிங்')
-    : (storeSettings.shop_name_en || storeSettings.shop_name_ta || 'Supermarket Grocery Billing POS');
+    ? (storeSettings.shop_name_ta || storeSettings.shop_name_en || 'Billr POS')
+    : (storeSettings.shop_name_en || storeSettings.shop_name_ta || 'Billr POS');
 
   return (
     <div 
@@ -66,7 +66,7 @@ export default function DesktopWorkspace({
           {shopName}
         </h1>
         <p className="text-xs sm:text-sm text-emerald-300/80 mt-1 font-medium tracking-wide">
-          Tamil Nadu Grocery GST Billing POS
+          Billr • Modern Retail POS Billing
         </p>
 
         {/* Live Date & Time Display Card */}

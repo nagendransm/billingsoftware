@@ -130,8 +130,8 @@ export default function App() {
   }, []);
 
   const titleName = lang === 'ta'
-    ? (storeSettings.shop_name_ta || storeSettings.shop_name_en || 'மளிகை கடை பில்லிங்')
-    : (storeSettings.shop_name_en || storeSettings.shop_name_ta || 'Grocery Billing POS');
+    ? (storeSettings.shop_name_ta || storeSettings.shop_name_en || 'Billr POS')
+    : (storeSettings.shop_name_en || storeSettings.shop_name_ta || 'Billr - Smart Retail POS');
 
   useEffect(() => {
     document.title = titleName;
@@ -177,6 +177,52 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleTabKeys, true);
   }, []);
 
+  // Handle Escape key for open App modals
+  useEffect(() => {
+    const handleModalEscape = (e) => {
+      if (e.key === 'Escape') {
+        if (isReceiptOpen) {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsReceiptOpen(false);
+          return;
+        }
+        if (showLicenceModal) {
+          e.preventDefault();
+          e.stopPropagation();
+          setShowLicenceModal(false);
+          return;
+        }
+        if (showShortcutsModal) {
+          e.preventDefault();
+          e.stopPropagation();
+          setShowShortcutsModal(false);
+          return;
+        }
+        if (showBarcodeModal) {
+          e.preventDefault();
+          e.stopPropagation();
+          setShowBarcodeModal(false);
+          return;
+        }
+        if (showUserManagementModal) {
+          e.preventDefault();
+          e.stopPropagation();
+          setShowUserManagementModal(false);
+          return;
+        }
+        if (showSubgroupsModal) {
+          e.preventDefault();
+          e.stopPropagation();
+          setShowSubgroupsModal(false);
+          return;
+        }
+      }
+    };
+    window.addEventListener('keydown', handleModalEscape, true);
+    return () => window.removeEventListener('keydown', handleModalEscape, true);
+  }, [isReceiptOpen, showLicenceModal, showShortcutsModal, showBarcodeModal, showUserManagementModal, showSubgroupsModal]);
+
   // Safety check for user role: only allowed tabs are 'desktop', 'pos', 'customers'
   useEffect(() => {
     if (currentUser?.role === 'user') {
@@ -194,6 +240,7 @@ export default function App() {
     setActiveInvoice(invoiceData);
     setIsReceiptOpen(true);
     loadProducts();
+    loadCustomers();
     if (shouldPrint) {
       setTimeout(() => {
         window.print();
@@ -251,7 +298,7 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'pos' && (
+        <div className={`h-full w-full flex flex-col ${activeTab === 'pos' ? '' : 'hidden'}`}>
           <PosScreen
             products={products}
             customers={customers}
@@ -262,7 +309,7 @@ export default function App() {
             billingMode={billingMode}
             setBillingMode={setBillingMode}
           />
-        )}
+        </div>
 
         {isAdmin && activeTab === 'products' && (
           <ProductsScreen
@@ -373,6 +420,7 @@ export default function App() {
         onClose={() => setShowSubgroupsModal(false)}
         subgroups={subgroups}
         categories={categories}
+        products={products}
         onRefresh={() => {
           loadSubgroups();
           loadProducts();

@@ -128,4 +128,57 @@ router.delete('/:id', (req, res) => {
   }
 });
 
+// Get all products belonging to a subgroup
+router.get('/:id/products', (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const products = db.prepare(`
+      SELECT p.*, 
+             c.name_en as category_name_en, c.name_ta as category_name_ta,
+             sg.name_en as subgroup_name_en, sg.name_ta as subgroup_name_ta
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      LEFT JOIN subgroups sg ON p.subgroup_id = sg.id
+      WHERE p.subgroup_id = ?
+      ORDER BY p.name_ta ASC
+    `).all(id);
+
+    res.json({ success: true, data: products });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Assign a product to a subgroup
+router.post('/:id/assign-product', (req, res) => {
+  try {
+    const subgroupId = Number(req.params.id);
+    const { product_id } = req.body;
+    if (!product_id) {
+      return res.status(400).json({ success: false, message: 'product_id is required' });
+    }
+
+    db.prepare('UPDATE products SET subgroup_id = ? WHERE id = ?').run(subgroupId, Number(product_id));
+
+    res.json({ success: true, message: 'Product assigned to subgroup successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Remove a product from a subgroup
+router.delete('/:id/products/:productId', (req, res) => {
+  try {
+    const subgroupId = Number(req.params.id);
+    const productId = Number(req.params.productId);
+
+    db.prepare('UPDATE products SET subgroup_id = NULL WHERE id = ? AND subgroup_id = ?')
+      .run(productId, subgroupId);
+
+    res.json({ success: true, message: 'Product removed from subgroup successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

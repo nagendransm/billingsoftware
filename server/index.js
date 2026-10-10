@@ -25,7 +25,7 @@ app.use('/api/subgroups', require('./routes/subgroups'));
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    app: 'Tamil Nadu Grocery GST Billing System',
+    app: 'Billr - Retail POS Billing System',
     state_code: '33',
     time: new Date().toISOString()
   });

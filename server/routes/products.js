@@ -246,6 +246,39 @@ router.put('/:id', (req, res) => {
   }
 });
 
+// Quick price update (Selling Price, MRP, Cost Price)
+router.put('/:id/price', (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { selling_price, mrp, cost_price } = req.body;
+    const existing = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    const newSp = selling_price !== undefined ? Number(selling_price) : existing.selling_price;
+    const newMrp = mrp !== undefined ? Number(mrp) : (existing.mrp || newSp);
+    const newCp = cost_price !== undefined ? Number(cost_price) : existing.cost_price;
+
+    db.prepare('UPDATE products SET selling_price = ?, mrp = ?, cost_price = ? WHERE id = ?')
+      .run(newSp, newMrp, newCp, id);
+
+    const updated = db.prepare(`
+      SELECT p.*, 
+             c.name_en as category_name_en, c.name_ta as category_name_ta,
+             sg.name_en as subgroup_name_en, sg.name_ta as subgroup_name_ta
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      LEFT JOIN subgroups sg ON p.subgroup_id = sg.id
+      WHERE p.id = ?
+    `).get(id);
+
+    res.json({ success: true, data: updated, message: 'Price updated successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Adjust stock quantity
 router.post('/:id/adjust-stock', (req, res) => {
   try {

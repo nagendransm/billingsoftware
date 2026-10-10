@@ -28,7 +28,7 @@ async function buildStandaloneDesktop() {
   
   const rootDir = __dirname;
   const electronDist = path.join(rootDir, 'node_modules', 'electron', 'dist');
-  const targetDir = path.join(rootDir, 'TamilNaduGroceryBilling');
+  const targetDir = path.join(rootDir, 'Billr');
 
   if (!fs.existsSync(electronDist)) {
     console.error('Electron dist not found at:', electronDist);
@@ -46,7 +46,7 @@ async function buildStandaloneDesktop() {
   for (const file of distFiles) {
     if (file === 'resources') continue; // Handle resources specially
     const srcPath = path.join(electronDist, file);
-    const destPath = path.join(targetDir, file === 'electron.exe' ? 'TamilNaduGroceryBilling.exe' : file);
+    const destPath = path.join(targetDir, file === 'electron.exe' ? 'Billr.exe' : file);
     if (!fs.existsSync(destPath)) {
       copyRecursiveSync(srcPath, destPath);
     }
@@ -126,7 +126,7 @@ async function buildStandaloneDesktop() {
   }
 
   console.log('--- STANDALONE DESKTOP APPLICATION CREATED SUCCESSFULLY! ---');
-  console.log('Location: ' + path.join(targetDir, 'TamilNaduGroceryBilling.exe'));
+  console.log('Location: ' + path.join(targetDir, 'Billr.exe'));
 }
 
 buildStandaloneDesktop().catch(err => {

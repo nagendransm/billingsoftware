@@ -30,11 +30,11 @@ export default function LicenceModal({ isOpen, onClose, storeSettings = {}, lang
           <div className="bg-white border border-slate-200 p-4 rounded-lg shadow-2xs space-y-2.5">
             <div className="flex justify-between border-b border-slate-100 pb-2">
               <span className="text-slate-500 font-medium">{lang === 'ta' ? 'மென்பொருள் பெயர்' : 'Product Name'}:</span>
-              <span className="font-bold text-slate-900">Tamil Nadu Grocery GST Billing POS</span>
+              <span className="font-bold text-slate-900">Billr POS</span>
             </div>
             <div className="flex justify-between border-b border-slate-100 pb-2">
               <span className="text-slate-500 font-medium">{lang === 'ta' ? 'பதிப்பு' : 'Edition / Version'}:</span>
-              <span className="font-mono font-bold text-emerald-700">v2.5 Retail Edition (Offline)</span>
+              <span className="font-mono font-bold text-emerald-700">Billr v2.5 Retail Edition</span>
             </div>
             <div className="flex justify-between border-b border-slate-100 pb-2">
               <span className="text-slate-500 font-medium">{lang === 'ta' ? 'உரிமம் பெற்ற நிறுவனம்' : 'Store Name'}:</span>
@@ -58,8 +58,8 @@ export default function LicenceModal({ isOpen, onClose, storeSettings = {}, lang
 
           <div className="text-[11px] text-slate-500 text-center">
             {lang === 'ta' 
-              ? 'அங்கீகரிக்கப்பட்ட தமிழ்நாட்டு மளிகை மற்றும் பல்பொருள் அங்காடி ஜிஎஸ்டி பில்லிங் மென்பொருள்.' 
-              : 'Dedicated Tamil Nadu Grocery & Retail Supermarket GST POS Billing System.'}
+              ? 'Billr - அதிநவீன POS ஜிஎஸ்டி பில்லிங் மென்பொருள்.' 
+              : 'Billr - Smart Retail & Supermarket POS Billing System.'}
           </div>
         </div>
 

@@ -43,7 +43,7 @@ function createWindow() {
     height: 900,
     minWidth: 1024,
     minHeight: 700,
-    title: 'தமிழ்நாடு மளிகை ஜிஎஸ்டி பில்லிங்',
+    title: 'Billr - Retail POS Billing',
     icon: path.join(__dirname, 'app.ico'),
     autoHideMenuBar: true,
     backgroundColor: '#ffffff',

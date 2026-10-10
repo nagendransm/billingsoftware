@@ -21,9 +21,12 @@ export default function Navbar({
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const menuBarRef = useRef(null);
 
-  const shopName = lang === 'ta'
-    ? (storeSettings.shop_name_ta || storeSettings.shop_name_en || 'SRI KUMARAN SUPER MARKET')
-    : (storeSettings.shop_name_en || storeSettings.shop_name_ta || 'SRI KUMARAN SUPER MARKET');
+  const hasStoreName = !!(storeSettings.shop_name_ta?.trim() || storeSettings.shop_name_en?.trim());
+  const shopName = hasStoreName
+    ? (lang === 'ta'
+        ? (storeSettings.shop_name_ta || storeSettings.shop_name_en)
+        : (storeSettings.shop_name_en || storeSettings.shop_name_ta))
+    : 'Billr POS';
 
   const currentYear = new Date().getFullYear();
 
@@ -121,7 +124,7 @@ export default function Navbar({
         },
         {
           id: 'subgroup_master',
-          label: 'Sub Group Master (துணைப் பிரிவு)',
+          label: 'Sub Group Master',
           action: () => {
             if (onOpenSubgroups) onOpenSubgroups();
           }
@@ -341,6 +344,37 @@ export default function Navbar({
     const handleKeyDown = (e) => {
       // 1. If no menu is open:
       if (!openMenu) {
+        // Escape on ANY screen: goes to the top menu bar!
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Blur any active element
+          if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+          }
+
+          let menuToOpen = 'transactions';
+          if (activeTab === 'products') menuToOpen = 'masters';
+          else if (activeTab === 'customers') menuToOpen = 'masters';
+          else if (activeTab === 'reports') menuToOpen = 'utility';
+          else if (activeTab === 'settings') menuToOpen = 'admin';
+          else if (activeTab === 'invoices') menuToOpen = 'transactions';
+          else if (activeTab === 'pos') menuToOpen = 'transactions';
+
+          if (!menuKeys.includes(menuToOpen)) {
+            menuToOpen = menuKeys[0] || 'transactions';
+          }
+
+          if (activeTab !== 'desktop') {
+            setActiveTab('desktop');
+          }
+
+          setOpenMenu(menuToOpen);
+          setHighlightedIndex(0);
+          return;
+        }
+
         // When on the home page ('desktop'), clicking ENTER or arrow keys opens Transactions menu!
         if (activeTab === 'desktop') {
           if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
@@ -443,9 +477,15 @@ export default function Navbar({
             🛒
           </div>
           <div className="flex items-center space-x-2 text-xs">
-            <span className="font-bold tracking-tight text-white font-tamil">{shopName}</span>
-            <span className="text-slate-600 font-mono text-[11px]">|</span>
-            <span className="text-emerald-400 font-medium text-[11px]">GST POS Billing</span>
+            {hasStoreName ? (
+              <>
+                <span className="font-bold tracking-tight text-white font-tamil">{shopName}</span>
+                <span className="text-slate-600 font-mono text-[11px]">|</span>
+                <span className="text-emerald-400 font-medium text-[11px]">Billr POS</span>
+              </>
+            ) : (
+              <span className="font-bold tracking-tight text-white">Billr POS</span>
+            )}
           </div>
         </div>
 

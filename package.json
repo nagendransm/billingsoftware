@@ -1,7 +1,7 @@
 {
-  "name": "tamilnadu-grocery-gst-billing",
+  "name": "billr",
   "version": "1.0.0",
-  "description": "GST Compliant Billing Software for Grocery Stores in Tamil Nadu (Bilingual Tamil & English)",
+  "description": "Billr - Modern Retail & Grocery GST Billing Software",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",

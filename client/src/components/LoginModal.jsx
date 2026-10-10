@@ -47,7 +47,7 @@ export default function LoginModal({ onLogin, lang = 'en' }) {
           <div className="w-5 h-5 rounded bg-emerald-600 flex items-center justify-center text-white text-xs font-bold shadow-xs">
             🛒
           </div>
-          <span className="font-bold text-slate-200">Tamil Nadu Grocery GST Billing POS</span>
+          <span className="font-bold text-slate-200">Billr POS</span>
         </div>
 
         <div className="flex items-center h-full space-x-1" style={{ WebkitAppRegion: 'no-drag' }}>
@@ -154,7 +154,7 @@ export default function LoginModal({ onLogin, lang = 'en' }) {
 
       {/* Bottom Info */}
       <div className="py-2.5 text-center text-xs text-slate-500 font-sans select-none">
-        Tamil Nadu Grocery GST Billing POS • Retail Desktop Edition
+        Billr • Smart Retail POS Edition
       </div>
     </div>
   );

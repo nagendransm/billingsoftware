@@ -177,7 +177,7 @@ export const translations = {
 
   ta: {
     // App & Header
-    appTitle: 'மளிகை ஜிஎஸ்டி பில்லிங் சாப்ட்வேர்',
+    appTitle: 'Billr POS',
     posBilling: 'விற்பனை / பில்லிங்',
     products: 'பொருட்கள் & இருப்பு',
     invoices: 'விற்பனை பட்டியல்',

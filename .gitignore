@@ -4,9 +4,11 @@ data/*.db-wal
 data/*.db-shm
 .DS_Store
 *.log
+*.txt
 
-# Packaged desktop build output (384MB — rebuild with: node build_desktop.js)
+# Packaged desktop build output (rebuild with: node build_desktop.js)
 TamilNaduGroceryBilling/
+Billr/
 
 # Compiled frontend (rebuild with: npm run build:client)
 client/dist/

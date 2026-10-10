@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function CustomersScreen({
   customers = [],
@@ -11,6 +11,28 @@ export default function CustomersScreen({
   const [ledgerData, setLedgerData] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+
+  // Close modals on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (isAddModalOpen) {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsAddModalOpen(false);
+          return;
+        }
+        if (isPayModalOpen) {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsPayModalOpen(false);
+          return;
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [isAddModalOpen, isPayModalOpen]);
 
   const [newCust, setNewCust] = useState({
     name: '',
@@ -27,8 +49,11 @@ export default function CustomersScreen({
     try {
       const res = await fetch(`/api/customers/${customerId}/ledger`);
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.data) {
         setLedgerData(data.data);
+        if (data.data.customer) {
+          setSelectedCustomer(data.data.customer);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -39,6 +64,16 @@ export default function CustomersScreen({
     setSelectedCustomer(cust);
     fetchLedger(cust.id);
   };
+
+  // Keep selectedCustomer synchronized in real time with parent customers prop
+  React.useEffect(() => {
+    if (selectedCustomer) {
+      const fresh = customers.find(c => c.id === selectedCustomer.id);
+      if (fresh && fresh.credit_balance !== selectedCustomer.credit_balance) {
+        setSelectedCustomer(prev => ({ ...prev, credit_balance: fresh.credit_balance }));
+      }
+    }
+  }, [customers]);
 
   const handleAddCustomer = async (e) => {
     e.preventDefault();
@@ -75,13 +110,26 @@ export default function CustomersScreen({
       if (data.success) {
         setIsPayModalOpen(false);
         setPayAmount('');
-        fetchLedger(selectedCustomer.id);
+        if (data.data) {
+          setSelectedCustomer(data.data);
+        }
+        await fetchLedger(selectedCustomer.id);
         if (onRefresh) onRefresh();
       }
     } catch (err) {
       console.error(err);
     }
   };
+
+  const currentBalance = React.useMemo(() => {
+    if (ledgerData?.customer?.credit_balance !== undefined) {
+      return Number(ledgerData.customer.credit_balance);
+    }
+    if (selectedCustomer?.credit_balance !== undefined) {
+      return Number(selectedCustomer.credit_balance);
+    }
+    return 0;
+  }, [ledgerData, selectedCustomer]);
 
   const filtered = customers.filter(c => {
     const q = search.toLowerCase();
@@ -125,6 +173,8 @@ export default function CustomersScreen({
           <div className="flex-1 overflow-y-auto divide-y divide-slate-200">
             {filtered.map(c => {
               const isSelected = selectedCustomer && selectedCustomer.id === c.id;
+              const displayBal = isSelected ? currentBalance : Number(c.credit_balance || 0);
+
               return (
                 <div
                   key={c.id}
@@ -137,9 +187,9 @@ export default function CustomersScreen({
                     <div className="font-tamil text-slate-900">{c.name}</div>
                     {c.phone && <div className="text-[11px] text-slate-500 font-mono">{c.phone}</div>}
                   </div>
-                  {c.credit_balance > 0 && (
+                  {displayBal > 0 && (
                     <span className="font-mono font-bold text-rose-700">
-                      ₹{c.credit_balance}
+                      ₹{displayBal}
                     </span>
                   )}
                 </div>
@@ -162,7 +212,7 @@ export default function CustomersScreen({
                   <div className="text-right">
                     <span className="text-slate-600 block text-[11px]">{lang === 'ta' ? 'கடன் பாக்கி:' : 'Credit Balance:'}</span>
                     <span className="text-lg font-bold font-mono text-rose-700">
-                      ₹ {selectedCustomer.credit_balance}
+                      ₹ {currentBalance}
                     </span>
                   </div>
 
@@ -273,13 +323,17 @@ export default function CustomersScreen({
       {isPayModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-3">
           <div className="bg-white rounded border border-slate-400 max-w-sm w-full p-4 space-y-3">
-            <h3 className="font-bold text-sm border-b pb-1.5 font-tamil">கடன் பாக்கி வரவு வைக்க</h3>
-            <div className="bg-slate-50 p-2 rounded border border-slate-200">
-              Customer: <strong>{selectedCustomer.name}</strong> | Due: <strong className="text-rose-700">₹ {selectedCustomer.credit_balance}</strong>
+            <h3 className="font-bold text-sm border-b pb-1.5 font-tamil">
+              {lang === 'ta' ? 'கடன் பாக்கி வரவு வைக்க' : 'Record Credit Repayment'}
+            </h3>
+            <div className="bg-slate-50 p-2 rounded border border-slate-200 text-xs">
+              {lang === 'ta' ? 'வாடிக்கையாளர்:' : 'Customer:'} <strong>{selectedCustomer.name}</strong> | {lang === 'ta' ? 'பாக்கி:' : 'Due:'} <strong className="text-rose-700 font-mono">₹ {currentBalance}</strong>
             </div>
             <form onSubmit={handleRecordPayment} className="space-y-2">
               <div>
-                <label className="font-bold block mb-1">செலுத்திய தொகை (₹) *</label>
+                <label className="font-bold block mb-1">
+                  {lang === 'ta' ? 'செலுத்திய தொகை (₹) *' : 'Paid Amount (₹) *'}
+                </label>
                 <input
                   type="number"
                   step="any"
@@ -291,7 +345,9 @@ export default function CustomersScreen({
                 />
               </div>
               <div>
-                <label className="font-bold block mb-1">குறிப்புகள்</label>
+                <label className="font-bold block mb-1">
+                  {lang === 'ta' ? 'குறிப்புகள்' : 'Remarks / Notes'}
+                </label>
                 <input
                   type="text"
                   value={payNotes}
@@ -300,8 +356,12 @@ export default function CustomersScreen({
                 />
               </div>
               <div className="flex justify-end space-x-2 pt-2 border-t">
-                <button type="button" onClick={() => setIsPayModalOpen(false)} className="px-3 py-1 rounded border">ரத்து</button>
-                <button type="submit" className="px-3 py-1 bg-emerald-700 text-white rounded font-bold">வரவு வை</button>
+                <button type="button" onClick={() => setIsPayModalOpen(false)} className="px-3 py-1 rounded border">
+                  {lang === 'ta' ? 'ரத்து' : 'Cancel'}
+                </button>
+                <button type="submit" className="px-3 py-1 bg-emerald-700 text-white rounded font-bold">
+                  {lang === 'ta' ? 'வரவு வை' : 'Save Payment'}
+                </button>
               </div>
             </form>
           </div>
