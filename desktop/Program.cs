@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 
-namespace TamilNaduGroceryBilling
+namespace Billr
 {
     static class Program
     {
@@ -12,8 +12,8 @@ namespace TamilNaduGroceryBilling
         {
             string appDir = AppDomain.CurrentDomain.BaseDirectory;
             
-            // Check for standalone independent executable in TamilNaduGroceryBilling folder
-            string standaloneExe = Path.Combine(appDir, "TamilNaduGroceryBilling", "TamilNaduGroceryBilling.exe");
+            // Check for standalone independent executable in Billr folder
+            string standaloneExe = Path.Combine(appDir, "Billr", "Billr.exe");
             if (File.Exists(standaloneExe))
             {
                 try

@@ -1,9 +1,9 @@
-# தமிழ்நாடு மளிகைக் கடை ஜிஎஸ்டி பில்லிங் சாப்ட்வேர்
-## Tamil Nadu Grocery Store GST Compliant Billing Software (Bilingual Tamil & English)
+# Billr - ஜிஎஸ்டி பில்லிங் மென்பொருள்
+## Billr - Retail & Grocery GST Compliant POS Billing Software (Bilingual Tamil & English)
 
-தமிழ்நாடு மளிகைக் கடைகள், சூப்பர் மார்க்கெட்டுகள் மற்றும் பலசரக்கு கடைகளுக்கான முழுமையான, வேகமான, 100% ஆஃப்லைனில் இயங்கக்கூடிய ஜிஎஸ்டி பில்லிங் மென்பொருள்.
+தமிழ்நாடு மற்றும் இந்திய மளிகைக் கடைகள், சூப்பர் மார்க்கெட்டுகள் மற்றும் சில்லறை வணிகங்களுக்கான முழுமையான, அதிவேக ஜிஎஸ்டி பில்லிங் மென்பொருள்.
 
-A high-speed, 100% offline-capable, GST compliant Point of Sale (POS) and inventory billing software specially engineered for grocery stores, supermarkets, and provision stores in **Tamil Nadu (State Code: 33)**.
+A high-speed, 100% offline-capable, GST compliant Point of Sale (POS) and inventory billing software specially engineered for retail stores, supermarkets, and grocery shops in **Tamil Nadu (State Code: 33)**.
 
 ---
 
@@ -56,16 +56,16 @@ A high-speed, 100% offline-capable, GST compliant Point of Sale (POS) and invent
 ### ⭐ 100% தனித்தியங்கும் விண்டோஸ் மென்பொருள் (Independent Desktop Software)
 இந்த மென்பொருள் எந்த உலாவியிலும் (Chrome, Edge, Firefox) இயங்காமல், **முழுமையான தனிப்பட்ட விண்டோஸ் சாப்ட்வேர் சாளரமாக (Native Independent Desktop Application Window)** இயங்கும்.
 
-**இயக்குவதற்கு இரண்டு வழிகள்:**
-1. கோப்புறையின் முகப்பில் உள்ள **`TamilNaduGroceryBilling.exe`** கோப்பை இரட்டை கிளிக் செய்யவும்.
-2. அல்லது **`TamilNaduGroceryBilling/TamilNaduGroceryBilling.exe`** கோப்பை நேரடியாக இயக்கலாம்.
+**இயக்குவதற்கு வழிகள்:**
+1. கோப்புறையின் முகப்பில் உள்ள **`Billr.exe`** அல்லது **`Launch.vbs`** கோப்பை இரட்டை கிளிக் செய்யவும்.
+2. அல்லது டெஸ்க்டாப்பில் உள்ள **`Billr.lnk`** ஷார்ட்கட்டை இயக்கவும்.
 
 #### சிறப்பம்சங்கள்:
 - ❌ எந்தவித இணைய உலாவியும் (Browser) திறக்காது.
 - ❌ முகவரிப் பட்டி (URL bar), டேப்கள் எதுவும் கிடையாது.
 - ✔️ சொந்த சாளரம் (Dedicated Window), சொந்த டாஸ்க்பார் ஐகான், முழுத் திரை பிஓஎஸ் (POS) வசதி.
 - ✔️ 100% ஆஃப்லைனில் இயங்கும் - இணையம் தேவையில்லை.
-- ✔️ `TamilNaduGroceryBilling` கோப்புறையை அப்படியே பென்டிரைவில் எடுத்துச் சென்று எந்த விண்டோஸ் பிசியிலும் இயக்கலாம்.
+- ✔️ `Billr` கோப்புறையை அப்படியே பென்டிரைவில் எடுத்துச் சென்று எந்த விண்டோஸ் பிசியிலும் இயக்கலாம்.
 
 ### முறை 2: கமாண்ட் லைன் மூலம் (Developer Mode)
 ```bash
